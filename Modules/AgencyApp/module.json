@@ -1,0 +1,13 @@
+{
+    "name": "AgencyApp",
+    "alias": "agencyapp",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\AgencyApp\\Providers\\AgencyAppServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

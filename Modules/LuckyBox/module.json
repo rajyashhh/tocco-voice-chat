@@ -1,0 +1,13 @@
+{
+    "name": "LuckyBox",
+    "alias": "luckybox",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\LuckyBox\\Providers\\LuckyBoxServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

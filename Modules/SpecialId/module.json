@@ -1,0 +1,13 @@
+{
+    "name": "SpecialId",
+    "alias": "specialid",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\SpecialId\\Providers\\SpecialIdServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.meow.live",
+      "sha256_cert_fingerprints":
+        ["7E:94:EF:24:D6:E3:87:6A:C4:41:4A:BD:71:0F:5C:29:CF:31:A4:43:D3:1B:13:33:00:8D:45:EC:8F:A7:77:C1"]
+    }
+  }
+]

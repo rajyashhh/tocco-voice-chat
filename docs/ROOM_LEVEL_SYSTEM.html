@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام Room Level - دليل التنفيذ الكامل</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.8;
+            padding: 40px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 4px solid #3498db;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        h2 {
+            color: #2980b9;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: linear-gradient(90deg, #ecf0f1, transparent);
+            border-right: 4px solid #3498db;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            color: #7f8c8d;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: right;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background: #3498db;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        code {
+            background: #ecf0f1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #c0392b;
+            direction: ltr;
+        }
+        
+        .step-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            background: #e8f6ff;
+            border-right: 4px solid #3498db;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-right: 4px solid #ffc107;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-right: 4px solid #28a745;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .folder-structure {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            direction: ltr;
+            text-align: left;
+            white-space: pre;
+        }
+        
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            direction: ltr;
+            text-align: center;
+            border: 2px dashed #ccc;
+        }
+        
+        ul {
+            margin: 15px 0;
+            padding-right: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .header-info {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .header-info h1 {
+            color: white;
+            border: none;
+            margin: 0;
+        }
+        
+        .header-info p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .toc h3 {
+            margin-top: 0;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .toc li {
+            padding: 8px 0;
+            border-bottom: 1px dotted #ddd;
+        }
+        
+        .toc li:last-child {
+            border-bottom: none;
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            
+            pre {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-info">
+            <h1>🏠 نظام Room Level</h1>
+            <p>دليل التنفيذ الكامل - مشروع Meow Live</p>
+            <p>تاريخ الإنشاء: January 22, 2026</p>
+        </div>
+        
+        <div class="toc">
+            <h3>📑 فهرس المحتويات</h3>
+            <ul>
+                <li>1. نظرة عامة</li>
+                <li>2. ما هو موجود بالفعل في المشروع</li>
+                <li>3. الخطوات المطلوبة للتنفيذ</li>
+                <li>4. Migrations اللازمة</li>
+                <li>5. إنشاء Models</li>
+                <li>6. إنشاء Service</li>
+                <li>7. إنشاء API Controller</li>
+                <li>8. إنشاء Admin Controller</li>
+                <li>9. إضافة Routes</li>
+                <li>10. آلية العمل</li>
+                <li>11. أوامر التنفيذ</li>
+            </ul>
+        </div>
+        
+        <h2>📋 نظرة عامة</h2>
+        <p>نظام Room Level هو نظام لترقية مستوى الغرف بناءً على إجمالي الهدايا (Diamonds) التي تم استلامها في الغرفة، مع إعطاء مكافآت لصاحب الغرفة عند الوصول لكل مستوى.</p>
+        
+        <div class="info-box">
+            <strong>الفكرة الأساسية:</strong> كلما زادت الهدايا المستلمة في الغرفة، يرتفع مستواها ويحصل صاحبها على مكافآت.
+        </div>
+        
+        <h2>✅ ما هو موجود بالفعل في المشروع</h2>
+        
+        <h3>1. الجداول الموجودة في rooms</h3>
+        <table>
+            <tr>
+                <th>الحقل</th>
+                <th>الوصف</th>
+            </tr>
+            <tr>
+                <td><code>level</code></td>
+                <td>المستوى الحالي للغرفة</td>
+            </tr>
+            <tr>
+                <td><code>exp</code></td>
+                <td>نقاط الخبرة</td>
+            </tr>
+            <tr>
+                <td><code>total_diamond</code></td>
+                <td>إجمالي الألماس المستلم</td>
+            </tr>
+            <tr>
+                <td><code>level_id</code></td>
+                <td>معرف المستوى</td>
+            </tr>
+        </table>
+        <p><strong>الملف:</strong> <code>database/migrations/2024_05_19_105140_add_columns_to_rooms.php</code></p>
+        
+        <h3>2. Services الموجودة</h3>
+        <table>
+            <tr>
+                <th>الملف</th>
+                <th>الوصف</th>
+            </tr>
+            <tr>
+                <td><code>app/Services/RoomLevelServices.php</code></td>
+                <td>خدمة أساسية لتحديث المستوى</td>
+            </tr>
+            <tr>
+                <td><code>Modules/Public/Http/Services/UpgradeRoomLevelServices.php</code></td>
+                <td>خدمة ترقية المستوى</td>
+            </tr>
+        </table>
+        
+        <h3>3. مستويات VIP نوع 4</h3>
+        <p>المستويات محفوظة في جدول <code>vips</code> بـ <code>type = 4</code></p>
+        
+        <h3>4. Admin Controller</h3>
+        <p><strong>الملف:</strong> <code>app/Admin/Controllers/RoomVipController.php</code></p>
+        
+        <div class="page-break"></div>
+        
+        <h2>📋 الخطوات المطلوبة للتنفيذ</h2>
+        
+        <div class="step-box">
+            <h3>الخطوة 1️⃣: إنشاء Module جديد</h3>
+        </div>
+        
+        <div class="folder-structure">Modules/RoomLevel/
+├── Config/
+│   └── config.php
+├── Database/
+│   ├── Migrations/
+│   │   ├── create_room_levels_table.php
+│   │   ├── create_room_level_rewards_table.php
+│   │   └── create_room_level_winners_table.php
+│   ├── Seeders/
+│   └── factories/
+├── Entities/
+│   ├── RoomLevel.php
+│   ├── RoomLevelReward.php
+│   └── RoomLevelWinner.php
+├── Http/
+│   ├── Controllers/
+│   │   ├── api/
+│   │   │   └── RoomLevelController.php
+│   │   └── admin/
+│   │       └── RoomLevelAdminController.php
+│   ├── Middleware/
+│   ├── Requests/
+│   └── Services/
+│       └── RoomLevelService.php
+├── Providers/
+│   └── RoomLevelServiceProvider.php
+├── Resources/
+│   └── views/
+├── Routes/
+│   ├── api.php
+│   └── web.php
+├── Transformers/
+│   └── RoomLevelResource.php
+├── Tests/
+├── module.json
+└── composer.json</div>
+        
+        <div class="step-box">
+            <h3>الخطوة 2️⃣: Migrations اللازمة</h3>
+        </div>
+        
+        <h4>جدول room_levels</h4>
+        <pre>Schema::create('room_levels', function (Blueprint $table) {
+    $table->id();
+    $table->string('name_ar')->nullable();
+    $table->string('name_en')->nullable();
+    $table->string('img')->nullable();
+    $table->integer('level');
+    $table->bigInteger('exp_required'); // الـ diamonds المطلوبة
+    $table->timestamps();
+});</pre>
+        
+        <h4>جدول room_level_rewards</h4>
+        <pre>Schema::create('room_level_rewards', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('room_level_id')->constrained()->onDelete('cascade');
+    $table->enum('type', ['coins', 'vip', 'ware', 'badge', 'achievement']);
+    $table->string('target'); // الـ ID للمكافأة أو القيمة
+    $table->integer('expire')->nullable(); // مدة الصلاحية بالأيام
+    $table->timestamps();
+});</pre>
+        
+        <h4>جدول room_level_winners</h4>
+        <pre>Schema::create('room_level_winners', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('room_id')->constrained()->onDelete('cascade');
+    $table->foreignId('room_level_id')->constrained()->onDelete('cascade');
+    $table->timestamp('achieved_at');
+    $table->timestamps();
+});</pre>
+        
+        <div class="page-break"></div>
+        
+        <div class="step-box">
+            <h3>الخطوة 3️⃣: إنشاء Models</h3>
+        </div>
+        
+        <h4>RoomLevel.php</h4>
+        <pre>&lt;?php
+
+namespace Modules\RoomLevel\Entities;
+
+use Illuminate\Database\Eloquent\Model;
+
+class RoomLevel extends Model
+{
+    protected $guarded = [];
+
+    public function rewards()
+    {
+        return $this->hasMany(RoomLevelReward::class, 'room_level_id', 'id');
+    }
+
+    public function winners()
+    {
+        return $this->hasMany(RoomLevelWinner::class, 'room_level_id', 'id');
+    }
+}</pre>
+        
+        <h4>RoomLevelReward.php</h4>
+        <pre>&lt;?php
+
+namespace Modules\RoomLevel\Entities;
+
+use Illuminate\Database\Eloquent\Model;
+
+class RoomLevelReward extends Model
+{
+    protected $guarded = [];
+
+    public function level()
+    {
+        return $this->belongsTo(RoomLevel::class, 'room_level_id', 'id');
+    }
+}</pre>
+        
+        <h4>RoomLevelWinner.php</h4>
+        <pre>&lt;?php
+
+namespace Modules\RoomLevel\Entities;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Room;
+
+class RoomLevelWinner extends Model
+{
+    protected $guarded = [];
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
+    }
+
+    public function roomLevel()
+    {
+        return $this->belongsTo(RoomLevel::class, 'room_level_id', 'id');
+    }
+}</pre>
+        
+        <div class="step-box">
+            <h3>الخطوة 4️⃣: تحديث Model الـ Room</h3>
+        </div>
+        
+        <p>أضف العلاقات التالية في <code>app/Models/Room.php</code>:</p>
+        <pre>// العلاقة مع المستوى الحالي
+public function currentLevel()
+{
+    return $this->belongsTo(\Modules\RoomLevel\Entities\RoomLevel::class, 'level_id');
+}
+
+// تاريخ المستويات المحققة
+public function levelHistory()
+{
+    return $this->hasMany(\Modules\RoomLevel\Entities\RoomLevelWinner::class);
+}</pre>
+        
+        <div class="page-break"></div>
+        
+        <div class="step-box">
+            <h3>الخطوة 5️⃣: إنشاء Service</h3>
+        </div>
+        
+        <h4>RoomLevelService.php</h4>
+        <pre>&lt;?php
+
+namespace Modules\RoomLevel\Http\Services;
+
+use App\Models\Room;
+use App\Models\Ware;
+use App\Helpers\Common;
+use App\Helpers\UserCommon;
+use App\Enums\UserCoinLogType;
+use Modules\Vip\Entities\OVip;
+use App\Helpers\UserCoinLogHelper;
+use Modules\RoomLevel\Entities\RoomLevel;
+use Modules\RoomLevel\Entities\RoomLevelWinner;
+
+class RoomLevelService
+{
+    /**
+     * تحديث مستوى الغرفة بعد استلام هدية
+     */
+    public function updateRoomLevel(Room $room, int $diamonds): void
+    {
+        $room->total_diamond += $diamonds;
+        $newLevel = $this->calculateLevel($room->total_diamond);
+        
+        if ($newLevel && $newLevel->id > ($room->level_id ?? 0)) {
+            $room->level_id = $newLevel->id;
+            $room->level = $newLevel->level;
+            $room->exp = $newLevel->exp_required;
+            
+            // تسجيل الإنجاز
+            $this->recordLevelAchievement($room, $newLevel);
+            
+            // إعطاء المكافآت
+            $this->grantRewards($room, $newLevel);
+        }
+        
+        $room->save();
+    }
+
+    /**
+     * حساب المستوى بناءً على إجمالي الألماس
+     */
+    private function calculateLevel(int $totalDiamond): ?RoomLevel
+    {
+        return RoomLevel::where('exp_required', '<=', $totalDiamond)
+            ->orderByDesc('level')
+            ->first();
+    }
+
+    /**
+     * تسجيل تحقيق المستوى
+     */
+    private function recordLevelAchievement(Room $room, RoomLevel $level): void
+    {
+        RoomLevelWinner::create([
+            'room_id' => $room->id,
+            'room_level_id' => $level->id,
+            'achieved_at' => now(),
+        ]);
+    }
+
+    // ... باقي الدوال
+}</pre>
+        
+        <div class="page-break"></div>
+        
+        <div class="step-box">
+            <h3>الخطوة 6️⃣: إنشاء API Controller</h3>
+        </div>
+        
+        <pre>&lt;?php
+
+namespace Modules\RoomLevel\Http\Controllers\api;
+
+use App\Helpers\Common;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Modules\RoomLevel\Entities\RoomLevel;
+use Modules\RoomLevel\Http\Services\RoomLevelService;
+
+class RoomLevelController extends Controller
+{
+    public function __construct(private RoomLevelService $roomLevelService)
+    {
+    }
+
+    /**
+     * الحصول على قائمة المستويات
+     */
+    public function index()
+    {
+        $levels = RoomLevel::with('rewards')
+            ->orderBy('level', 'asc')
+            ->get();
+
+        return Common::apiResponse(true, '', $levels, 200);
+    }
+
+    /**
+     * الحصول على معلومات مستوى غرفة معينة
+     */
+    public function roomProgress(int $roomId)
+    {
+        $room = \App\Models\Room::find($roomId);
+        
+        if (!$room) {
+            return Common::apiResponse(false, __('Room not found'), null, 404);
+        }
+
+        $info = $this->roomLevelService->getRoomLevelInfo($room);
+
+        return Common::apiResponse(true, '', $info, 200);
+    }
+}</pre>
+        
+        <div class="step-box">
+            <h3>الخطوة 7️⃣: إضافة Routes</h3>
+        </div>
+        
+        <h4>API Routes</h4>
+        <pre>Route::middleware(['auth:sanctum', 'update.last.seen'])->group(function () {
+    Route::prefix('room-level')->group(function () {
+        Route::get('/levels', [RoomLevelController::class, 'index']);
+        Route::get('/room/{roomId}', [RoomLevelController::class, 'roomProgress']);
+    });
+});</pre>
+        
+        <h4>Admin Routes</h4>
+        <pre>Route::resource('room-levels', RoomLevelAdminController::class);</pre>
+        
+        <div class="step-box">
+            <h3>الخطوة 8️⃣: تفعيل الـ Module</h3>
+        </div>
+        
+        <p>في ملف <code>modules_statuses.json</code>:</p>
+        <pre>{
+    "RoomLevel": true
+}</pre>
+        
+        <div class="page-break"></div>
+        
+        <h2>🔄 آلية العمل</h2>
+        
+        <div class="flow-diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                    عند إرسال هدية في الغرفة                  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│         استدعاء RoomLevelService::updateRoomLevel()         │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              إضافة الـ diamonds إلى total_diamond            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    حساب المستوى الجديد                       │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+              لم يترقى               ترقى المستوى
+                    │                   │
+                    ▼                   ▼
+              ┌─────────┐     ┌─────────────────────┐
+              │  حفظ    │     │ تسجيل في winners    │
+              │ الغرفة  │     │ + إعطاء المكافآت   │
+              └─────────┘     │ + إرسال إشعارات    │
+                              └─────────────────────┘
+        </div>
+        
+        <h2>🚀 أوامر التنفيذ</h2>
+        
+        <pre># إنشاء Module جديد
+php artisan module:make RoomLevel
+
+# تشغيل Migrations
+php artisan module:migrate RoomLevel
+
+# إنشاء Seeder للمستويات الافتراضية
+php artisan module:make-seed RoomLevelSeeder RoomLevel
+
+# مسح Cache
+php artisan cache:clear
+php artisan config:clear</pre>
+        
+        <div class="warning-box">
+            <strong>📝 ملاحظات مهمة:</strong>
+            <ul>
+                <li><strong>النظام الحالي:</strong> يستخدم جدول <code>vips</code> بـ <code>type = 4</code> للمستويات</li>
+                <li><strong>البديل:</strong> يمكنك إنشاء جدول منفصل <code>room_levels</code> لمزيد من المرونة</li>
+                <li><strong>التكامل:</strong> يجب استدعاء <code>RoomLevelService</code> من <code>GiftLogController</code> عند إرسال الهدايا</li>
+                <li><strong>الأداء:</strong> استخدم Queue للمكافآت الكبيرة</li>
+            </ul>
+        </div>
+        
+        <div class="success-box">
+            <strong>✅ بعد التنفيذ ستحصل على:</strong>
+            <ul>
+                <li>نظام مستويات متكامل للغرف</li>
+                <li>مكافآت تلقائية عند الترقية</li>
+                <li>لوحة تحكم لإدارة المستويات والمكافآت</li>
+                <li>API endpoints للتطبيق</li>
+                <li>تتبع تاريخ الترقيات</li>
+            </ul>
+        </div>
+        
+        <hr style="margin: 40px 0;">
+        
+        <p style="text-align: center; color: #7f8c8d;">
+            <strong>مشروع Meow Live</strong> | الإصدار 1.0 | January 22, 2026
+        </p>
+    </div>
+</body>
+</html>

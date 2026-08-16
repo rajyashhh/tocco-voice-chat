@@ -1,0 +1,262 @@
+/*
+ * admin-rtl.css — Right-to-left layout for the AdminLTE 2.x admin panel.
+ *
+ * The panel ships LTR-only: AdminLTE floats .main-sidebar left and offsets the
+ * content with margin-left. Setting <html dir="rtl"> alone does not move the
+ * sidebar, so an Arabic install rendered with the sidebar still on the left.
+ * This sheet flips the whole layout to the right and mirrors the inner spacing
+ * that AdminLTE hard-codes as left/right. Scoped to body.rtl so an English
+ * (LTR) session is completely unaffected — the class is emitted only when the
+ * locale is one of ar/fa/ur/he (see resources/views/admin/views/index.blade.php).
+ */
+
+/* ── Core layout: sidebar to the right, content offset to the right ───────── */
+body.rtl .main-sidebar,
+body.rtl .left-side {
+    left: auto;
+    right: 0;
+}
+
+body.rtl .content-wrapper,
+body.rtl .main-footer,
+body.rtl .right-side {
+    margin-left: 0;
+    margin-right: 230px;
+}
+
+/* Collapsed (sidebar-mini) — narrow rail on the right */
+body.rtl.sidebar-collapse .content-wrapper,
+body.rtl.sidebar-collapse .main-footer,
+body.rtl.sidebar-collapse .right-side {
+    margin-left: 0;
+    margin-right: 50px;
+}
+
+/* Off-canvas on mobile: sidebar slides in/out from the right */
+@media (max-width: 767px) {
+    body.rtl .content-wrapper,
+    body.rtl .main-footer,
+    body.rtl .right-side {
+        margin-right: 0;
+    }
+    body.rtl .main-sidebar,
+    body.rtl .left-side {
+        transform: translate(230px, 0);
+    }
+    body.rtl.sidebar-open .main-sidebar,
+    body.rtl.sidebar-open .left-side {
+        transform: translate(0, 0);
+    }
+}
+
+/* ── Header / logo: logo to the right, navbar toggle & links mirrored ─────── */
+body.rtl .main-header .logo {
+    float: right;
+}
+
+body.rtl .main-header .navbar {
+    margin-left: 0;
+    margin-right: 230px;
+}
+
+body.rtl.sidebar-collapse .main-header .navbar {
+    margin-right: 50px;
+}
+
+@media (max-width: 767px) {
+    body.rtl .main-header .navbar {
+        margin-right: 0;
+    }
+    body.rtl .main-header .logo {
+        float: none;
+    }
+}
+
+body.rtl .navbar-nav {
+    float: left !important;
+}
+
+body.rtl .navbar-nav > li {
+    float: right;
+}
+
+body.rtl .navbar-custom-menu,
+body.rtl .navbar-right {
+    float: left !important;
+}
+
+body.rtl .sidebar-toggle {
+    float: right !important;
+}
+
+/* Dropdowns anchored to the correct edge */
+body.rtl .navbar-nav > .user-menu > .dropdown-menu,
+body.rtl .navbar-nav > .notifications-menu > .dropdown-menu,
+body.rtl .navbar-nav > .messages-menu > .dropdown-menu,
+body.rtl .navbar-nav > .tasks-menu > .dropdown-menu {
+    left: 0;
+    right: auto;
+}
+
+/* ── Sidebar user panel & search ──────────────────────────────────────────── */
+body.rtl .user-panel > .image {
+    float: right;
+}
+
+body.rtl .user-panel > .info {
+    padding-left: 0;
+    padding-right: 10px;
+    text-align: right;
+}
+
+body.rtl .sidebar-form .btn {
+    left: 0;
+    right: auto;
+}
+
+/* ── Sidebar menu items: icons on the right, text flows right ─────────────── */
+body.rtl .sidebar-menu,
+body.rtl .sidebar-menu li,
+body.rtl .sidebar-menu li > a {
+    text-align: right;
+}
+
+body.rtl .sidebar-menu > li > a > .fa,
+body.rtl .sidebar-menu > li > a > .glyphicon,
+body.rtl .sidebar-menu > li > a > .ion {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+/* Submenu (treeview) indentation from the right */
+body.rtl .sidebar-menu .treeview-menu {
+    padding-left: 0;
+    padding-right: 5px;
+}
+
+body.rtl .sidebar-menu .treeview-menu > li > a {
+    padding-left: 5px;
+    padding-right: 20px;
+}
+
+body.rtl .sidebar-menu .treeview-menu > li > a > .fa,
+body.rtl .sidebar-menu .treeview-menu > li > a > .glyphicon,
+body.rtl .sidebar-menu .treeview-menu > li > a > .ion {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+/* Collapse/expand caret flips to the left edge */
+body.rtl .sidebar-menu > li > a > .pull-right,
+body.rtl .sidebar-menu > li > a > .label,
+body.rtl .sidebar-menu > li > a > .pull-right-container {
+    left: 10px;
+    right: auto;
+    float: left !important;
+}
+
+body.rtl .sidebar-menu .treeview .pull-right-container .fa-angle-left:before {
+    content: "\f104"; /* point the caret the RTL way */
+}
+
+/* Collapsed hover fly-out opens to the left of the rail */
+body.rtl.sidebar-collapse .sidebar-menu > li:hover > .treeview-menu {
+    left: auto;
+    right: 50px;
+}
+
+/* ── Content: breadcrumbs, boxes, pull utilities ─────────────────────────── */
+body.rtl .content-header > .breadcrumb {
+    left: 15px;
+    right: auto;
+}
+
+body.rtl .content-header > h1,
+body.rtl .content-header > .breadcrumb {
+    text-align: right;
+}
+
+body.rtl .pull-right {
+    float: left !important;
+}
+
+body.rtl .pull-left {
+    float: right !important;
+}
+
+/* Boxes & tools */
+body.rtl .box-tools.pull-right {
+    float: left !important;
+}
+
+body.rtl .box-header > .fa,
+body.rtl .box-header > .glyphicon,
+body.rtl .box-header > .ion,
+body.rtl .box-header .box-title {
+    margin-right: 0;
+    text-align: right;
+}
+
+/* ── Forms: labels right-aligned, control offset mirrored ────────────────── */
+body.rtl .form-horizontal .control-label {
+    text-align: left;
+}
+
+body.rtl .form-group,
+body.rtl .form-control,
+body.rtl label {
+    text-align: right;
+}
+
+body.rtl .input-group-addon:first-child {
+    border-right: 1px solid #d2d6de;
+    border-left: 0;
+}
+
+body.rtl .radio label,
+body.rtl .checkbox label {
+    padding-left: 0;
+    padding-right: 20px;
+}
+
+body.rtl .radio input[type="radio"],
+body.rtl .checkbox input[type="checkbox"] {
+    margin-left: 0;
+    margin-right: -20px;
+}
+
+/* ── Tables & grid ───────────────────────────────────────────────────────── */
+body.rtl table,
+body.rtl .table th,
+body.rtl .table td {
+    text-align: right;
+}
+
+body.rtl .dataTables_filter {
+    text-align: left;
+}
+
+/* ── Buttons with icons, dropdowns ───────────────────────────────────────── */
+body.rtl .btn > .fa,
+body.rtl .btn > .glyphicon {
+    margin-right: 0;
+}
+
+body.rtl .dropdown-menu {
+    text-align: right;
+}
+
+/* Modal footer buttons keep source order but align to the left edge */
+body.rtl .modal-footer {
+    text-align: left;
+}
+
+/* Close (×) icon to the left */
+body.rtl .close {
+    float: left;
+}
+
+/* Pagination flows right */
+body.rtl .pagination {
+    padding-right: 0;
+}

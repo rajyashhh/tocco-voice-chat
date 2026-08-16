@@ -1,0 +1,566 @@
+(function($){
+    const cfg = window.MomentViewerConfig || {};
+    const routes = cfg.routes || {};
+    const texts = cfg.texts || {};
+    const adminUserUrl = cfg.adminUserUrl || '';
+    const defaultAvatar = cfg.defaultAvatar || '';
+    const csrf = cfg.csrf || '';
+
+    let currentPage = 1;
+    let currentSort = 'random';
+    let totalPages = 1;
+    let searchQuery = '';
+    let isLoading = false;
+    const perPage = 10;
+    const scrollEl = $('.content-wrapper').length ? $('.content-wrapper') : $(window);
+
+    $(document).ready(function() {
+        loadMoments();
+
+        $('#sortSelect').on('change', function() {
+            currentSort = $(this).val();
+            currentPage = 1;
+            if (currentSort === 'random' && routes.resetRandom) {
+                $.post(routes.resetRandom, {_token: csrf});
+            }
+            loadMoments();
+        });
+
+        let searchTimeout;
+        $('#userSearch').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                searchQuery = $('#userSearch').val();
+                currentPage = 1;
+                loadMoments();
+            }, 400);
+        });
+
+        $('#refreshBtn').on('click', function() {
+            const icon = $(this).find('i');
+            icon.addClass('fa-spin');
+            const after = () => setTimeout(() => icon.removeClass('fa-spin'), 400);
+            if (currentSort === 'random' && routes.resetRandom) {
+                $.post(routes.resetRandom, {_token: csrf}).then(() => { loadMoments(); after(); });
+            } else {
+                loadMoments();
+                after();
+            }
+        });
+
+        $('#prevBtn').on('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadMoments();
+                scrollToTop();
+            }
+        });
+
+        $('#nextBtn').on('click', function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadMoments();
+                scrollToTop();
+            }
+        });
+
+        $(document).on('click', '.tab-btn', function() {
+            $('.tab-btn').removeClass('active');
+            $(this).addClass('active');
+            const tab = $(this).data('tab');
+            loadTabContent(tab);
+        });
+
+        scrollEl.on('scroll', function() {
+            const scrollTop = scrollEl.scrollTop();
+            const viewHeight = scrollEl.height();
+            const docHeight = scrollEl[0]?.scrollHeight || $(document).height();
+
+            if (scrollTop > 300) {
+                $('#scrollTopBtn').addClass('visible');
+            } else {
+                $('#scrollTopBtn').removeClass('visible');
+            }
+
+            const nearBottom = scrollTop + viewHeight >= docHeight - 400;
+            if (nearBottom && !isLoading && currentPage < totalPages) {
+                currentPage++;
+                loadMoments(true);
+            }
+        });
+
+        $('#scrollTopBtn').on('click', scrollToTop);
+    });
+
+    function scrollToTop() {
+        if (scrollEl.is(window)) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            scrollEl.animate({ scrollTop: 0 }, 300);
+        }
+    }
+
+    function loadMoments(append = false) {
+        if (isLoading) return;
+        const url = routes.moments;
+        const feed = $('#momentsFeed');
+        if (!append) {
+            feed.html('<div class="loading-container"><div class="spinner"></div></div>');
+        } else {
+            feed.append('<div id="feed-loading" class="loading-container" style="padding: 24px 0;"><div class="spinner" style="width:32px;height:32px;border-width:3px;"></div></div>');
+        }
+        isLoading = true;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: { sort: currentSort, page: currentPage, per_page: perPage, search: searchQuery },
+            success: function(response) {
+                if (response.success) {
+                    renderMoments(response.data, append);
+                    if (response.pagination) {
+                        updatePagination(response.pagination);
+                    } else {
+                        const hasMore = Array.isArray(response.data) && response.data.length === perPage;
+                        totalPages = hasMore ? currentPage + 1 : currentPage;
+                    }
+                } else {
+                    showError(texts.noData || 'No data');
+                }
+            },
+            error: function(xhr) {
+                showError((texts.failedLoad || 'Failed to load moments') + ': ' + (xhr.responseJSON?.message || xhr.statusText));
+            },
+            complete: function() {
+                isLoading = false;
+                $('#feed-loading').remove();
+            }
+        });
+    }
+
+    function showError(message) {
+        $('#momentsFeed').html(`
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle" style="color: #e41e3f;"></i>
+                <h3>${texts.error || 'Error'}</h3>
+                <p>${message}</p>
+                <button class="refresh-btn" onclick="window.loadMoments && window.loadMoments()" style="margin-top: 20px;">
+                    <i class="fas fa-sync-alt"></i> ${texts.tryAgain || 'Try Again'}
+                </button>
+            </div>
+        `);
+    }
+
+    function renderMoments(moments, append = false) {
+        const feed = $('#momentsFeed');
+        if (!moments || moments.length === 0) {
+            if (append) {
+                totalPages = currentPage;
+                $('#pagination').hide();
+                return;
+            }
+            feed.html(`
+                <div class="empty-state" style="background: var(--surface); padding: 60px 20px; border-radius: 8px;">
+                    <i class="fas fa-image"></i>
+                    <h3>${texts.noMoments || 'No Moments Found'}</h3>
+                    <p>${texts.noMomentsMsg || 'There are no moments to display'}</p>
+                    ${searchQuery ? `<p style="margin-top: 10px;"><button class="refresh-btn" onclick="window.clearSearch && window.clearSearch()">${texts.clearSearch || 'Clear Search'}</button></p>` : ''}
+                </div>
+            `);
+            $('#pagination').hide();
+            return;
+        }
+
+        let html = '';
+        moments.forEach(moment => {
+            const user = moment.user || {};
+            const avatar = getUserAvatar(user);
+            const userName = user.name || 'Unknown User';
+            const userUuid = user.uuid || 'N/A';
+            const userId = moment.user_id;
+            const userUrl = adminUserUrl + userId;
+
+            const images = moment.images || [];
+            const allMedia = images.length > 0 ? images : (moment.img ? [{image: moment.img}] : []);
+
+            const createdAt = new Date(moment.created_at);
+            const timeAgo = getTimeAgo(createdAt);
+
+            html += `
+                <div class="moment-post" data-moment-id="${moment.id}">
+                    <div class="post-header">
+                        <img src="${avatar}" alt="${userName}" class="user-avatar" loading="lazy" onclick="window.open('${userUrl}', '_blank')">
+                        <div class="user-info">
+                            <div class="user-name" onclick="window.open('${userUrl}', '_blank')">${userName}</div>
+                            <div class="user-uuid">UUID: ${userUuid} • ${timeAgo}</div>
+                        </div>
+                        <div class="post-menu">
+                            <button class="menu-btn" onclick="toggleMenu(${moment.id})">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                            <div class="dropdown-menu" id="menu-${moment.id}">
+                                <button class="dropdown-item" onclick="editMoment(${moment.id})">
+                                    <i class="fas fa-edit"></i>
+                                    <span>${texts.editDesc || 'Edit Description'}</span>
+                                </button>
+                                <button class="dropdown-item delete" onclick="deleteMoment(${moment.id})">
+                                    <i class="fas fa-trash"></i>
+                                    <span>${texts.deleteMoment || 'Delete Moment'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    ${moment.description ? `
+                        <div class="post-description" id="desc-${moment.id}">
+                            ${escapeHtml(moment.description)}
+                        </div>
+                    ` : ''}
+                    ${allMedia.length > 0 ? `
+                        <div class="post-media">
+                            <div class="media-gallery" id="gallery-${moment.id}">
+                                ${allMedia.map((media, index) => {
+                                    const mediaPath = getImagePath(media.image);
+                                    const isVideo = mediaPath && (mediaPath.includes('.mp4') || mediaPath.includes('.mov') || mediaPath.includes('.webm'));
+                                    return `
+                                        <div class="media-item ${index === 0 ? 'active' : ''}" data-index="${index}">
+                                            ${isVideo ? 
+                                                `<video src="${mediaPath}" preload="metadata" controls></video>` : 
+                                                `<img src="${mediaPath}" alt="Moment" loading="lazy" onerror="this.src='https://via.placeholder.com/600x400/1877f2/ffffff?text=Image+Not+Found'">`
+                                            }
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            ${allMedia.length > 1 ? `
+                                <div class="media-counter">${allMedia.length} <i class="fas fa-images"></i></div>
+                                <button class="media-nav prev" onclick="navigateGallery(${moment.id}, -1)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="media-nav next" onclick="navigateGallery(${moment.id}, 1)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                    <div class="post-stats">
+                        <div class="stats-left" onclick="toggleLikes(${moment.id})">
+                            ${moment.likes_count > 0 ? `
+                                <div class="like-icon">
+                                    <i class="fas fa-heart"></i>
+                                    <span>${moment.likes_count}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="stats-right">
+                            ${moment.comments_count > 0 ? `<span onclick="toggleComments(${moment.id})">${moment.comments_count} ${texts.comments || 'comments'}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <button class="action-btn" onclick="toggleComments(${moment.id})">
+                            <i class="fas fa-comment"></i>
+                            <span>${texts.comment || 'Comment'}</span>
+                        </button>
+                    </div>
+                    <div class="likes-list" id="likes-${moment.id}"></div>
+                    <div class="comments-section" id="comments-${moment.id}"></div>
+                </div>
+            `;
+        });
+
+        if (append) {
+            feed.append(html);
+        } else {
+            feed.html(html);
+        }
+    }
+
+    function clearSearch() {
+        $('#userSearch').val('');
+        searchQuery = '';
+        loadMoments();
+    }
+    window.clearSearch = clearSearch;
+
+    function updatePagination(pagination) {
+        totalPages = pagination.last_page;
+        currentPage = pagination.current_page;
+        $('#pageInfo').text(`${texts.page || 'Page'} ${currentPage} ${texts.of || 'of'} ${totalPages}`);
+        $('#prevBtn').prop('disabled', currentPage === 1);
+        $('#nextBtn').prop('disabled', currentPage === totalPages);
+        $('#pagination').show();
+    }
+
+    function toggleMenu(momentId) {
+        event.stopPropagation();
+        const menu = $(`#menu-${momentId}`);
+        $('.dropdown-menu').not(menu).removeClass('show');
+        menu.toggleClass('show');
+    }
+    window.toggleMenu = toggleMenu;
+
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.post-menu').length) {
+            $('.dropdown-menu').removeClass('show');
+        }
+    });
+
+    function navigateGallery(momentId, direction) {
+        event.stopPropagation();
+        const gallery = $(`#gallery-${momentId}`);
+        const items = gallery.find('.media-item');
+        const activeIndex = items.filter('.active').data('index');
+        const newIndex = activeIndex + direction;
+        if (newIndex >= 0 && newIndex < items.length) {
+            items.removeClass('active');
+            items.eq(newIndex).addClass('active');
+        }
+    }
+    window.navigateGallery = navigateGallery;
+
+    function toggleComments(momentId) {
+        event.stopPropagation();
+        const commentsSection = $(`#comments-${momentId}`);
+        if (commentsSection.hasClass('show')) {
+            commentsSection.removeClass('show').slideUp();
+        } else {
+            $(`#likes-${momentId}`).removeClass('show').slideUp();
+            loadComments(momentId);
+            commentsSection.addClass('show').slideDown();
+        }
+    }
+    window.toggleComments = toggleComments;
+
+    function toggleLikes(momentId) {
+        event.stopPropagation();
+        const likesSection = $(`#likes-${momentId}`);
+        if (likesSection.hasClass('show')) {
+            likesSection.removeClass('show').slideUp();
+        } else {
+            $(`#comments-${momentId}`).removeClass('show').slideUp();
+            loadLikes(momentId);
+            likesSection.addClass('show').slideDown();
+        }
+    }
+    window.toggleLikes = toggleLikes;
+
+    function loadComments(momentId) {
+        const url = routes.comments.replace(':id', momentId);
+        const container = $(`#comments-${momentId}`);
+        container.html('<div style="text-align: center; padding: 20px;"><div class="spinner" style="width: 30px; height: 30px; border-width: 3px;"></div></div>');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function(response) {
+                if (response.success && response.data.length > 0) {
+                    let html = '';
+                    response.data.forEach(comment => {
+                        const user = comment.user || {};
+                        const avatar = user.profile?.avatar ? getImagePath(user.profile.avatar) : defaultAvatar;
+                        const timeAgo = getTimeAgo(new Date(comment.created_at));
+                        html += `
+                            <div class="comment-item">
+                                <img src="${avatar}" alt="${user.name}" class="comment-avatar">
+                                <div class="comment-content">
+                                    <div class="comment-bubble">
+                                        <div class="comment-author">${user.name || 'Unknown'}</div>
+                                        <div class="comment-text">${escapeHtml(comment.comment)}</div>
+                                    </div>
+                                    <div class="comment-meta">
+                                        <span>${timeAgo}</span>
+                                        <span class="comment-delete" onclick="deleteComment(${comment.id}, ${momentId})">${texts.delete || 'Delete'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.html(html);
+                } else {
+                    container.html(`<p style="text-align: center; color: #65676b; padding: 20px;">${texts.noComments || 'No comments yet'}</p>`);
+                }
+            },
+            error: function() {
+                container.html(`<p style="text-align: center; color: #e41e3f; padding: 20px;">${texts.failComments || 'Failed to load comments'}</p>`);
+            }
+        });
+    }
+
+    function loadLikes(momentId) {
+        const url = routes.likes.replace(':id', momentId);
+        const container = $(`#likes-${momentId}`);
+        container.html('<div style="text-align: center; padding: 20px;"><div class="spinner" style="width: 30px; height: 30px; border-width: 3px;"></div></div>');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function(response) {
+                if (response.success && response.data.length > 0) {
+                    let html = '';
+                    response.data.forEach(like => {
+                        const user = like.user || {};
+                        const avatar = user.profile?.avatar ? getImagePath(user.profile.avatar) : defaultAvatar;
+                        html += `
+                            <div class="like-item">
+                                <img src="${avatar}" alt="${user.name}" class="like-avatar">
+                                <div class="like-name">${user.name || 'Unknown'}</div>
+                            </div>
+                        `;
+                    });
+                    container.html(html);
+                } else {
+                    container.html(`<p style="text-align: center; color: #65676b; padding: 20px;">${texts.noLikes || 'No likes yet'}</p>`);
+                }
+            },
+            error: function() {
+                container.html(`<p style="text-align: center; color: #e41e3f; padding: 20px;">${texts.failLikes || 'Failed to load likes'}</p>`);
+            }
+        });
+    }
+
+    function editMoment(momentId) {
+        event.stopPropagation();
+        $('.dropdown-menu').removeClass('show');
+        const descElement = $(`#desc-${momentId}`);
+        const currentDesc = descElement.text().trim();
+        Swal.fire({
+            title: texts.editDesc || 'Edit Description',
+            input: 'textarea',
+            inputValue: currentDesc,
+            inputAttributes: { rows: 4 },
+            showCancelButton: true,
+            confirmButtonColor: '#1877f2',
+            cancelButtonColor: '#65676b',
+            confirmButtonText: texts.save || 'Save',
+            cancelButtonText: texts.cancel || 'Cancel',
+            inputValidator: (value) => {
+                if (value && value.length > 1000) {
+                    return texts.descTooLong || 'Description is too long (max 1000 characters)';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                updateMomentDescription(momentId, result.value);
+            }
+        });
+    }
+    window.editMoment = editMoment;
+
+    function updateMomentDescription(momentId, description) {
+        $.ajax({
+            url: routes.updateDescription.replace(':id', momentId),
+            method: 'PUT',
+            data: { description, _token: csrf },
+            success: function(response) {
+                if (response.success) {
+                    $(`#desc-${momentId}`).html(escapeHtml(response.description));
+                    Swal.fire({ icon: 'success', title: texts.updated || 'Updated', text: texts.descUpdated || 'Description updated successfully', timer: 1500, showConfirmButton: false });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({ icon: 'error', title: texts.error || 'Error', text: xhr.responseJSON?.message || texts.failUpdate || 'Failed to update description' });
+            }
+        });
+    }
+    window.updateMomentDescription = updateMomentDescription;
+
+    function deleteMoment(momentId) {
+        event.stopPropagation();
+        Swal.fire({
+            title: texts.sure || 'Are you sure?',
+            text: texts.noRevert || 'You will not be able to revert this!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e41e3f',
+            cancelButtonColor: '#65676b',
+            confirmButtonText: texts.yesDelete || 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: routes.deleteMoment.replace(':id', momentId),
+                    type: 'DELETE',
+                    data: { _token: csrf },
+                    success: function(response) {
+                        if (response.success) {
+                            $(`.moment-post[data-moment-id="${momentId}"]`).fadeOut(200, function(){ $(this).remove(); });
+                            Swal.fire({ icon: 'success', title: texts.deleted || 'Deleted!', text: texts.momentDeleted || 'Moment deleted successfully', timer: 1500, showConfirmButton: false });
+                        } else {
+                            Swal.fire({ icon: 'error', title: texts.error || 'Error', text: response.message || texts.failDeleteMoment || 'Failed to delete moment' });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({ icon: 'error', title: texts.error || 'Error', text: xhr.responseJSON?.message || texts.failDeleteMoment || 'Failed to delete moment' });
+                    }
+                });
+            }
+        });
+    }
+    window.deleteMoment = deleteMoment;
+
+    function deleteComment(commentId, momentId) {
+        event.stopPropagation();
+        Swal.fire({
+            title: texts.sure || 'Are you sure?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e41e3f',
+            cancelButtonColor: '#65676b',
+            confirmButtonText: texts.yesDelete || 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: routes.deleteComment.replace(':id', commentId),
+                    type: 'DELETE',
+                    data: { _token: csrf },
+                    success: function(response) {
+                        if (response.success) {
+                            loadComments(momentId);
+                            Swal.fire({ icon: 'success', title: texts.deleted || 'Deleted!', text: texts.commentDeleted || 'Comment deleted successfully', timer: 1200, showConfirmButton: false });
+                        } else {
+                            Swal.fire({ icon: 'error', title: texts.error || 'Error', text: response.message || texts.failDeleteComment || 'Failed to delete comment' });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({ icon: 'error', title: texts.error || 'Error', text: xhr.responseJSON?.message || texts.failDeleteComment || 'Failed to delete comment' });
+                    }
+                });
+            }
+        });
+    }
+    window.deleteComment = deleteComment;
+
+    function getUserAvatar(user) {
+        if (user.profile?.avatar) return getImagePath(user.profile.avatar);
+        if (user.avatar) return getImagePath(user.avatar);
+        return defaultAvatar;
+    }
+
+    function getImagePath(path) {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        return cfg.storageBase ? cfg.storageBase + '/' + path : '/storage/' + path;
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>"']/g, function(m) {
+            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]);
+        });
+    }
+
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        const intervals = [
+            { label: texts.years || 'y', seconds: 31536000 },
+            { label: texts.months || 'm', seconds: 2592000 },
+            { label: texts.days || 'd', seconds: 86400 },
+            { label: texts.hours || 'h', seconds: 3600 },
+            { label: texts.minutes || 'm', seconds: 60 },
+        ];
+        for (const interval of intervals) {
+            const count = Math.floor(seconds / interval.seconds);
+            if (count >= 1) return `${count}${interval.label}`;
+        }
+        return texts.now || 'just now';
+    }
+
+    window.loadMoments = loadMoments;
+
+})(jQuery);

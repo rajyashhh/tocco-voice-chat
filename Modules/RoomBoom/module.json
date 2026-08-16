@@ -1,0 +1,13 @@
+{
+    "name": "RoomBoom",
+    "alias": "roomboom",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\RoomBoom\\Providers\\RoomBoomServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

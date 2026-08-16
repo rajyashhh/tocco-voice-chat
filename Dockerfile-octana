@@ -1,0 +1,136 @@
+FROM php:8.2-cli AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    supervisor \
+    zip \
+    unzip \
+    git \
+    curl \
+    ffmpeg \
+    libavcodec-extra \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev  \
+    pkg-config \
+    libssl-dev \
+    libicu-dev \
+    libzip-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libwebp-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+# swoole + redis via PECL, pinned to the exact versions running in prod
+# (swoole 6.2.1, redis 6.3.0) — deterministic, proven-good build.
+RUN  pecl channel-update pecl.php.net \
+    && printf "no\nno\nno\nno\nno\nno\nno\nno\nno\nno\nno\nno\n" | pecl install swoole-6.2.1 \
+    && pecl install redis-6.3.0 \
+    && docker-php-ext-enable swoole redis \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo_mysql  mbstring exif pcntl bcmath gd zip opcache intl
+
+RUN rm /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+
+COPY docker/docker-php-ext-opcache.ini /usr/local/etc/php/conf.d/
+COPY docker/docker-php-uploads.ini /usr/local/etc/php/conf.d/
+COPY docker/99-myapp-pm.ini /usr/local/etc/php/conf.d/
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /app
+
+# Copy composer.json first for layer caching
+COPY composer.json composer.lock /app/
+
+# Download dependencies without scripts (app files not present yet).
+# No --ignore-platform-reqs: the lock is resolved against the pinned PHP 8.2
+# platform, so a mismatch must fail the build instead of drifting silently.
+RUN env REDIS_HOST=172.17.0.1 \
+    composer install --no-dev --no-interaction --no-scripts
+
+RUN env REDIS_HOST=172.17.0.1 \
+    composer require laravel/octane --no-interaction --no-scripts
+
+# Now copy the rest of the application
+COPY . /app
+
+# Re-dump autoloader with scripts (app files now present).
+# Ensure bootstrap/cache exists+writable first: package:discover (run by the
+# post-autoload-dump script) writes the package manifest there, and the dir is
+# gitignored so a fresh checkout/package may ship it empty or absent.
+RUN mkdir -p /app/bootstrap/cache && chmod -R 777 /app/bootstrap/cache \
+    && env CACHE_DRIVER=array SESSION_DRIVER=array QUEUE_CONNECTION=sync \
+    composer dump-autoload --optimize
+
+# Setup supervisord configuration
+COPY docker/octana-supervisor.conf /etc/supervisor/conf.d/supervisord.conf
+
+# .dockerignore excludes storage/logs from the build context — recreate it
+# in the image so log writes never depend on runtime directory creation.
+RUN mkdir -p /app/storage/logs
+
+RUN env CACHE_DRIVER=array SESSION_DRIVER=array QUEUE_CONNECTION=sync \
+    php artisan octane:install  --server=swoole
+
+
+ENV OCTANE_WORKERS=8
+ENV OCTANE_MAX_REQUESTS=500
+ENV OCTANE_TASK_WORKERS=4
+
+ENV OCTANE_SERVER="swoole"
+
+
+RUN sed -i "/^OCTANE_/d" .env && sed -i "/^SESSION_DRIVER/d" .env && sed -i "/^LOG_LEVEL/d" .env && printf "%s\n" \
+"OCTANE_WORKERS=${OCTANE_WORKERS}" \
+"OCTANE_MAX_REQUESTS=${OCTANE_MAX_REQUESTS}" \
+"OCTANE_SERVER=${OCTANE_SERVER}" \
+"OCTANE_TASK_WORKERS=${OCTANE_TASK_WORKERS}" \
+"SESSION_DRIVER=redis" \
+"LOG_LEVEL=error" \
+>> .env
+
+
+
+COPY docker/octane.php /app/config/octane.php
+#COPY docker/auth.php   /app/config/auth.php
+
+# settings.json is gitignored (generated at runtime), so it is absent from the
+# build context — create it so chmod never fails on a clean build; the app
+# regenerates its real content on the first request.
+RUN touch /app/public/settings.json \
+    && chmod -R 777 /app/storage /app/bootstrap \
+    && chmod 777 /app/public/settings.json
+
+# Bake the public-storage symlink into the image. storage/app is a persistent
+# volume but public/ is not, so a `storage:link` created at runtime is wiped on
+# every container recreate (breaking admin logo/favicon served from the public
+# disk). Baking it means it survives every recreate. ln -sfn is idempotent and
+# needs no DB/Redis, unlike `artisan storage:link`.
+RUN ln -sfn /app/storage/app/public /app/public/storage
+
+# optimize:clear bundles cache:clear, which flushes the Redis store and so
+# opens a Redis connection — that fails at build time (no service up) and aborts
+# before the useful bootstrap-file clears run. Clearing the app cache on a fresh
+# image is meaningless anyway (empty store), so run only the file-based clears.
+RUN php artisan config:clear \
+    && php artisan route:clear \
+    && php artisan view:clear \
+    && php artisan clear-compiled
+
+RUN env CACHE_DRIVER=array SESSION_DRIVER=array QUEUE_CONNECTION=sync \
+    php artisan view:cache
+
+#COPY docker/nginx-octana.conf /etc/nginx/sites-available/default
+#EXPOSE 80
+
+
+# Expose port 9000
+EXPOSE 8000
+
+# Start supervisord
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

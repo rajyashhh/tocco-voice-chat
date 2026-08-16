@@ -1,0 +1,11 @@
+{
+    "name": "WhatsappAuth",
+    "alias": "whatsappauth",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\WhatsappAuth\\Providers\\WhatsappAuthServiceProvider"
+    ],
+    "files": []
+}

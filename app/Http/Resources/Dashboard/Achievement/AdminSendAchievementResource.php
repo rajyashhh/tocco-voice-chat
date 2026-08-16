@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Resources\Dashboard\Achievement;
+use App\Helpers\StorageHelper;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class AdminSendAchievementResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    function get_user($id ){
+        $user = User::withTrashed()->find($id);
+        if($user)
+        {
+            return [
+                'id'   =>$user->id  ?? '',
+                'name' =>$user->name ?? '',
+                'img'  =>$user->profile->avatar ?? null,
+            ];
+        }
+        else{
+            return null;
+        }
+    }
+
+    public function toArray(Request $request): array
+    {
+
+        return [
+            'id'           => $this->id,
+            'enable'       => $this->is_enable,
+            'img'          => $this->custom_image,
+            'user'         => $this->get_user($this->user_id),
+            'achievement'  => $this->achievementLevel,
+        ];
+    }
+}

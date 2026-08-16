@@ -1,0 +1,31 @@
+{
+    "name": "nwidart/dailyprize",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\DailyPrize\\": "",
+            "Modules\\DailyPrize\\App\\": "app/",
+            "Modules\\DailyPrize\\Database\\Factories\\": "database/factories/",
+            "Modules\\DailyPrize\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\DailyPrize\\Tests\\": "tests/"
+        }
+    }
+}

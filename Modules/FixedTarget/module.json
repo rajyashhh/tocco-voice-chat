@@ -1,0 +1,13 @@
+{
+    "name": "FixedTarget",
+    "alias": "fixedtarget",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\FixedTarget\\Providers\\FixedTargetServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

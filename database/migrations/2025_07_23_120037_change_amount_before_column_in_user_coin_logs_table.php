@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        if (!Schema::hasColumn('user_coin_logs', 'amount_before')) {
+            Schema::table('user_coin_logs', function (Blueprint $table) {
+                $table->decimal('amount_before', 45, 2)->nullable();
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('user_coin_logs', function (Blueprint $table) {
+            //
+        });
+    }
+};

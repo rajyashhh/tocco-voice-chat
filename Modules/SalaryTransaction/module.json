@@ -1,0 +1,11 @@
+{
+    "name": "SalaryTransaction",
+    "alias": "salarytransaction",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\SalaryTransaction\\Providers\\SalaryTransactionServiceProvider"
+    ],
+    "files": []
+}

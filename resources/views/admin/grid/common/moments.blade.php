@@ -1,0 +1,98 @@
+<div class="box box-solid">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ __('admin.Actions') }}</h3>
+
+    </div>
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked+.slider {
+            background-color: #2196F3;
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+    </style>
+
+
+        <div class="box-body">
+            @if(session()->has('message'))
+                <div class="alert alert-success">
+                    {{ session()->get('message') }}
+                </div>
+            @endif
+
+            @php
+
+                    $vip=DB::table('configs')->where('name','upload_moment')->first();
+                   // $users=DB::table('users')->get();
+        @endphp
+            <form method="POST" action="{{ route('admin.moment-config') }}" class="formcustomPage" enctype="multipart/form-data">
+            @csrf
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="number">{{ __('admin.moment_value_settings') }}</label>
+                    <input type="number" id="number" name="number" min="1"  value="{{$vip->value ?? ''}}"/>
+                <button type="submit">{{ __('admin.save') }}</button>
+                </div>
+            </div>
+            </form>
+        </div>
+
+    <!-- /.box-body -->
+
+
+</div>

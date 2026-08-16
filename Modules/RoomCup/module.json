@@ -1,0 +1,13 @@
+{
+    "name": "RoomCup",
+    "alias": "roomcup",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\RoomCup\\Providers\\RoomCupServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

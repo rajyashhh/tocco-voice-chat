@@ -1,0 +1,11 @@
+{
+    "name": "DailyPrize",
+    "alias": "dailyprize",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\DailyPrize\\Providers\\DailyPrizeServiceProvider"
+    ],
+    "files": []
+}

@@ -1,0 +1,13 @@
+* text=auto
+
+*.blade.php diff=html
+*.css diff=css
+*.html diff=html
+*.md diff=markdown
+*.php diff=php
+
+/.github export-ignore
+CHANGELOG.md export-ignore
+
+# Shell tooling must stay LF (CRLF breaks bash on checkout)
+*.sh text eol=lf

@@ -1,0 +1,13 @@
+{
+    "name": "Vip",
+    "alias": "vip",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Vip\\Providers\\VipServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

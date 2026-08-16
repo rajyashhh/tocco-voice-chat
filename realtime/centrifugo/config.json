@@ -1,0 +1,135 @@
+{
+  "http_api": {
+    "key": "${CENTRIFUGO_API_KEY}"
+  },
+  "client": {
+    "token": {
+      "hmac_secret_key": "${CENTRIFUGO_HMAC_SECRET}"
+    },
+    "allowed_origins": [],
+    "ping_interval": "25s",
+    "pong_timeout": "10s"
+  },
+  "channel": {
+    "without_namespace": {
+      "allow_subscribe_for_client": false,
+      "allow_publish_for_client": false
+    },
+    "namespaces": [
+      {
+        "name": "chat",
+        "history_size": 300,
+        "history_ttl": "720h",
+        "force_recovery": true,
+        "presence": false,
+        "join_leave": false,
+        "allow_subscribe_for_client": true,
+        "allow_publish_for_client": false
+      },
+      {
+        "name": "groups",
+        "history_size": 500,
+        "history_ttl": "168h",
+        "force_recovery": true,
+        "presence": true,
+        "join_leave": false,
+        "allow_subscribe_for_client": true,
+        "allow_publish_for_client": false,
+        "subscribe_proxy_enabled": true,
+        "subscribe_proxy_name": "laravel_subscribe"
+      },
+      {
+        "name": "user",
+        "history_size": 100,
+        "history_ttl": "24h",
+        "force_recovery": true,
+        "presence": false,
+        "join_leave": false,
+        "allow_subscribe_for_client": true,
+        "allow_publish_for_client": false,
+        "allow_user_limited_channels": true
+      },
+      {
+        "name": "banner",
+        "history_size": 0,
+        "history_ttl": "0s",
+        "force_recovery": false,
+        "presence": false,
+        "join_leave": false,
+        "allow_subscribe_for_client": true,
+        "allow_publish_for_client": false
+      },
+      {
+        "name": "presence",
+        "history_size": 0,
+        "history_ttl": "0s",
+        "force_recovery": false,
+        "presence": true,
+        "join_leave": false,
+        "allow_subscribe_for_client": true,
+        "allow_publish_for_client": false
+      }
+    ]
+  },
+  "engine": {
+    "type": "redis",
+    "redis": {
+      "address": "${CENTRIFUGO_REDIS_ADDRESS}",
+      "password": "",
+      "db": 0
+    }
+  },
+  "prometheus": {
+    "enabled": true
+  },
+  "health": {
+    "enabled": true
+  },
+  "admin": {
+    "enabled": false
+  },
+  "log": {
+    "level": "info"
+  },
+  "proxies": [
+    {
+      "name": "laravel_connect",
+      "endpoint": "http://meow-app:8000/api/centrifugo/connect",
+      "http_headers": [
+        "Authorization"
+      ],
+      "timeout": "3s",
+      "http": {
+        "static_headers": {
+          "X-Centrifugo-Proxy-Secret": "${CENTRIFUGO_PROXY_SECRET}"
+        }
+      }
+    },
+    {
+      "name": "laravel_subscribe",
+      "endpoint": "http://meow-app:8000/api/centrifugo/subscribe",
+      "http_headers": [
+        "Authorization"
+      ],
+      "timeout": "3s",
+      "http": {
+        "static_headers": {
+          "X-Centrifugo-Proxy-Secret": "${CENTRIFUGO_PROXY_SECRET}"
+        }
+      }
+    },
+    {
+      "name": "laravel_refresh",
+      "endpoint": "http://meow-app:8000/api/centrifugo/refresh",
+      "http_headers": [
+        "Authorization"
+      ],
+      "timeout": "3s",
+      "http": {
+        "static_headers": {
+          "X-Centrifugo-Proxy-Secret": "${CENTRIFUGO_PROXY_SECRET}"
+        }
+      }
+    }
+  ]
+}

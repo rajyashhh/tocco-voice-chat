@@ -1,0 +1,13 @@
+{
+    "name": "TribeReward",
+    "alias": "tribereward",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\TribeReward\\Providers\\TribeRewardServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

@@ -1,0 +1,13 @@
+{
+    "name": "RoleRewards",
+    "alias": "rolerewards",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\RoleRewards\\Providers\\RoleRewardsServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

@@ -1,0 +1,30 @@
+# Git
+.git
+.github
+
+# Vendors (rebuilt inside container)
+vendor
+
+# Dockerfiles
+Dockerfile*
+
+# Lock file (not maintained on this branch — causes build failures)
+
+# Storage logs (1.5GB+, not needed in build)
+storage/logs
+storage/jobs-logs
+
+# Tests & docs
+tests
+docs
+.claude
+
+# IDE & OS
+.idea
+.vscode
+*.swp
+.DS_Store
+Thumbs.db
+
+# Node (not used in backend)
+node_modules

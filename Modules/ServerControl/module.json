@@ -1,0 +1,13 @@
+{
+    "name": "ServerControl",
+    "alias": "servercontrol",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ServerControl\\Providers\\ServerControlServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

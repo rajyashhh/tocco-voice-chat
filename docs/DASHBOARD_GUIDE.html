@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meow Live Dashboard Guide</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.8}
+.sidebar{position:fixed;top:0;right:0;width:300px;height:100vh;background:#1e293b;border-left:1px solid #334155;overflow-y:auto;z-index:100;padding:0;transition:transform .3s}
+.sidebar .logo{text-align:center;padding:15px;border-bottom:1px solid #334155;position:sticky;top:0;background:#1e293b;z-index:1}
+.sidebar .logo h2{color:#38bdf8;font-size:1.3em}
+.sidebar .logo p{color:#94a3b8;font-size:.75em}
+.menu-item{display:block;text-decoration:none;transition:all .2s;border-right:3px solid transparent}
+.menu-parent{padding:10px 15px;color:#f1f5f9;font-weight:600;font-size:.88em;cursor:pointer;display:flex;align-items:center;gap:8px;background:#1e293b}
+.menu-parent:hover{background:#334155}
+.menu-parent.active{color:#38bdf8;border-right-color:#38bdf8;background:#334155}
+.menu-parent .arrow{margin-right:auto;transition:transform .2s;font-size:.7em}
+.menu-parent .arrow.open{transform:rotate(90deg)}
+.menu-children{display:none;background:#0f172a}
+.menu-children.open{display:block}
+.menu-child{display:block;padding:8px 35px 8px 15px;color:#94a3b8;text-decoration:none;font-size:.82em;transition:all .2s;border-right:3px solid transparent}
+.menu-child:hover{color:#38bdf8;background:#1a2332}
+.menu-child.active{color:#38bdf8;border-right-color:#38bdf8}
+.menu-sub-parent{padding:8px 35px 8px 15px;color:#cbd5e1;font-size:.82em;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}
+.menu-sub-parent:hover{color:#38bdf8;background:#1a2332}
+.menu-sub-children{display:none;background:#0a1120}
+.menu-sub-children.open{display:block}
+.menu-sub-child{display:block;padding:6px 50px 6px 15px;color:#64748b;text-decoration:none;font-size:.78em;transition:all .2s}
+.menu-sub-child:hover{color:#38bdf8}
+.main{margin-right:300px;padding:25px}
+.header-banner{background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border-radius:16px;padding:35px;margin-bottom:25px;text-align:center}
+.header-banner h1{color:#fff;font-size:2em;margin-bottom:8px}
+.header-banner p{color:rgba(255,255,255,.85);font-size:1em}
+.search-box{max-width:500px;margin:15px auto 0;position:relative}
+.search-box input{width:100%;padding:10px 18px 10px 40px;border-radius:25px;border:none;background:rgba(255,255,255,.2);color:#fff;font-size:.95em;outline:none}
+.search-box input::placeholder{color:rgba(255,255,255,.6)}
+.section{background:#1e293b;border-radius:12px;padding:25px;margin-bottom:20px;border:1px solid #334155;scroll-margin-top:20px}
+.section h2{color:#38bdf8;font-size:1.4em;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.section .subtitle{color:#94a3b8;margin-bottom:15px;font-size:.9em}
+.section p{color:#cbd5e1;margin-bottom:10px;font-size:.92em}
+.sub-items{margin:10px 0}
+.sub-item{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px 15px;margin-bottom:8px}
+.sub-item h4{color:#f1f5f9;font-size:.92em;margin-bottom:4px}
+.sub-item p{color:#94a3b8;font-size:.82em;margin:0}
+.sub-item .path{color:#64748b;font-size:.78em;font-family:monospace;direction:ltr;display:inline-block}
+.media-zone{background:#0f172a;border:2px dashed #334155;border-radius:10px;padding:25px;text-align:center;margin:15px 0;cursor:pointer;transition:all .3s;position:relative;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.media-zone:hover{border-color:#38bdf8;background:#1a2332}
+.media-zone .upload-icon{font-size:2.5em;color:#475569;margin-bottom:8px}
+.media-zone .upload-text{color:#94a3b8;font-size:.9em}
+.media-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:12px 0}
+.gallery-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid #334155;background:#0f172a}
+.gallery-item img,.gallery-item video{width:100%;height:180px;object-fit:cover}
+.gallery-item .caption{padding:8px;color:#94a3b8;font-size:.8em}
+.gallery-item .remove-gallery{position:absolute;top:6px;left:6px;background:rgba(239,68,68,.9);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:.8em}
+textarea.note-input{width:100%;min-height:60px;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;color:#e2e8f0;font-size:.85em;resize:vertical;margin:8px 0}
+textarea.note-input:focus{outline:none;border-color:#38bdf8}
+.note-box{background:#1a2332;border-right:4px solid #f59e0b;padding:12px 15px;border-radius:0 8px 8px 0;margin:12px 0}
+.note-box p{color:#fbbf24;margin:0;font-size:.85em}
+.toggle-btn{position:fixed;top:12px;right:12px;z-index:200;background:#1e293b;border:1px solid #334155;color:#38bdf8;width:38px;height:38px;border-radius:8px;cursor:pointer;font-size:1.2em;display:none}
+.dark-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+.save-indicator{position:fixed;bottom:70px;left:15px;background:#22c55e;color:#fff;padding:6px 14px;border-radius:8px;font-size:.82em;opacity:0;transition:opacity .3s;z-index:200}
+.save-indicator.show{opacity:1}
+.print-btn{position:fixed;bottom:15px;left:15px;z-index:200;background:#0ea5e9;color:#fff;border:none;width:45px;height:45px;border-radius:50%;cursor:pointer;font-size:1.2em;box-shadow:0 4px 15px rgba(14,165,233,.4)}
+.lang-switcher{position:fixed;top:12px;left:12px;z-index:200}
+.lang-switcher select{background:#1e293b;color:#38bdf8;border:1px solid #334155;border-radius:8px;padding:8px 12px;font-size:.85em;cursor:pointer;outline:none}
+.lang-switcher select:hover{border-color:#38bdf8}
+@media(max-width:768px){
+.sidebar{transform:translateX(100%)}
+.sidebar.open{transform:translateX(0)}
+.main{margin-right:0;padding:12px}
+.toggle-btn{display:block}
+.dark-overlay.show{display:block}
+.header-banner{padding:20px 12px}
+.header-banner h1{font-size:1.4em}
+}
+@media print{
+.sidebar,.toggle-btn,.print-btn,.media-zone,.save-indicator{display:none!important}
+.main{margin-right:0}
+body{background:#fff;color:#333}
+.section{border:1px solid #ddd;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+<div class="dark-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+<div class="logo">
+<h2>🦅 Meow Live Dashboard Guide</h2>
+<p>دليل شامل لكل أقسام لوحة التحكم</p>
+</div>
+<nav id="sidebarNav"></nav>
+</aside>
+<div class="main" id="mainContent"></div>
+<div class="save-indicator" id="saveIndicator">✅ تم الحفظ</div>
+<div class="lang-switcher" id="langSwitcher">
+<select onchange="switchLang(this.value)">
+<option value="ar">🇸🇦 العربية</option>
+<option value="en">🇺🇸 English</option>
+<option value="tr">🇹🇷 Türkçe</option>
+<option value="hi">🇮🇳 हिन्दी</option>
+<option value="es">🇪🇸 Español</option>
+<option value="zh">🇨🇳 中文</option>
+<option value="id">🇮🇩 Indonesia</option>
+</select>
+</div>
+<button class="print-btn" onclick="window.print()" title="طباعة">🖨️</button>
+<script>
+const MENU_DATA = [
+{id:170,pid:0,title:"Dashboard",uri:null,desc:"الصفحة الرئيسية للداشبورد - فيها إحصائيات شاملة عن المستخدمين، الغرف، الوكالات، الشحن، والأرباح. أول صفحة تظهر لما تدخل لوحة التحكم."},
+{id:278,pid:0,title:"Area Manager",uri:null,desc:"إدارة مديري المناطق - كل مدير منطقة مسؤول عن عدة دول ويتابع أداء مديري الدول والـ BDs.",children:[
+{id:279,pid:278,title:"Area Manager Charge",uri:"area-manager-charges",desc:"تقارير شحن مديري المناطق - عرض عمليات الشحن التي تمت تحت إشراف كل مدير منطقة."},
+{id:277,pid:278,title:"Area Manager",uri:"area-manager-users",desc:"قائمة مديري المناطق - عرض وإدارة مديري المناطق وتعيينهم على الدول."}
+]},
+{id:256,pid:0,title:"Badges",uri:null,desc:"نظام الشارات والأوسمة - إدارة الشارات التي يحصل عليها المستخدمين كمكافآت أو تمييز.",children:[
+{id:257,pid:256,title:"Badges",uri:"badges",desc:"قائمة كل الشارات المتاحة في التطبيق - إنشاء وتعديل وحذف الشارات مع الصور والأسعار."},
+{id:258,pid:256,title:"Dedicate Badges",uri:"dedicate-badges",desc:"إهداء شارات لمستخدمين محددين - اختيار المستخدم والشارة ومدة الصلاحية."}
+]},
+{id:268,pid:0,title:"Super Admin",uri:null,desc:"إدارة مديري الدول (Super Admins) - كل مدير دولة مسؤول عن الـ BDs والوكالات في دولته.",children:[
+{id:276,pid:268,title:"Restore Super Admin",uri:"restore-super-admins",desc:"استعادة حسابات مديري الدول المحذوفة."},
+{id:272,pid:268,title:"Super Admin Charges",uri:"superadmin-charges",desc:"تقارير شحن مديري الدول - عمليات الشحن التي تمت تحت إشراف كل مدير دولة."},
+{id:269,pid:268,title:"Super Admin",uri:"superadmin-users",desc:"قائمة مديري الدول - إنشاء وتعديل وحذف حسابات مديري الدول."},
+{id:270,pid:268,title:"Settings",uri:"superadmin-users-settings",desc:"إعدادات مديري الدول - تحديد الصلاحيات والإعدادات الخاصة بكل مدير دولة."},
+{id:273,pid:268,title:"Super Admin Banner Requests",uri:"superadmin-banner-requests",desc:"طلبات البانرات من مديري الدول - مراجعة وقبول أو رفض طلبات الإعلانات."},
+{id:271,pid:268,title:"Super Admin Rewards",uri:"super-admin-rewards",desc:"مكافآت مديري الدول - عرض وإدارة المكافآت المخصصة لمديري الدول."}
+]},
+{id:228,pid:0,title:"Games",uri:null,desc:"إدارة الألعاب داخل التطبيق - التحكم في الألعاب المتاحة، إعداداتها، ونسب الأرباح.",children:[
+{id:247,pid:228,title:"Users Report",uri:"coin-game-users-reports",desc:"تقارير المستخدمين في الألعاب - عرض أداء اللاعبين، أرباحهم وخسائرهم في كل لعبة."},
+{id:229,pid:228,title:"Games",uri:"all-games",desc:"قائمة كل الألعاب المتاحة - تفعيل/تعطيل الألعاب، تعديل إعداداتها، ونسب الربح."}
+]},
+{id:114,pid:0,title:"Fast Orders",uri:null,desc:"أوامر سريعة - مجموعة من العمليات السريعة التي يحتاجها المدير بشكل متكرر.",children:[
+{id:227,pid:114,title:"Request Backgrounds",uri:"request-background-image",desc:"طلبات تغيير خلفية الغرف - مراجعة وقبول أو رفض طلبات تغيير الخلفيات."},
+{id:69,pid:114,title:"User Record",uri:"soon",desc:"سجل المستخدم - عرض تاريخ نشاط المستخدم وعملياته."},
+{id:70,pid:114,title:"Bans",uri:"bans",desc:"حظر المستخدمين - حظر مؤقت أو دائم مع تحديد السبب والنوع."},
+{id:197,pid:114,title:"Close Room",uri:"bans-rooms",desc:"إغلاق الغرف - إغلاق الغرف المخالفة أو بناءً على طلب."},
+{id:134,pid:114,title:"Special UUID Requests",uri:"/special-id-requests",desc:"طلبات المعرفات المميزة - مراجعة طلبات شراء أرقام UUID مميزة."},
+{id:86,pid:114,title:"Edit Level",uri:"/levels/users",desc:"تعديل مستوى المستخدم - رفع أو خفض مستوى مستخدم معين يدوياً."},
+{id:131,pid:114,title:"Gift from the Store",uri:"/wares_dedicate",desc:"إهداء عناصر من المتجر - إهداء إطارات أو تأثيرات أو فقاعات لمستخدم معين."},
+{id:61,pid:114,title:"Gift VIP",uri:"/vips_dedicate",desc:"إهداء VIP - منح باقة VIP لمستخدم معين مع تحديد المدة."},
+{id:184,pid:114,title:"Gift a Badge",uri:"achievement-dedicate",desc:"إهداء شارة إنجاز - منح شارة إنجاز لمستخدم معين."}
+]},
+{id:178,pid:0,title:"Wallet",uri:null,desc:"نظام المحافظ - إدارة المحافظ الأساسية للتطبيق ومتابعة التحويلات.",children:[
+{id:236,pid:178,title:"Core Wallet Transactions",uri:"core-wallet-transactions",desc:"سجل تحويلات المحافظ الأساسية - تاريخ كل التحويلات بين المحافظ."},
+{id:91,pid:178,title:"App Wallets",uri:"/core-wallets",desc:"المحافظ الأساسية للتطبيق - عرض أرصدة المحافظ الرئيسية وإجراء تحويلات."}
+]},
+{id:76,pid:0,title:"Charge System",uri:null,desc:"نظام الشحن - إدارة عمليات شحن العملات والألماس للمستخدمين والوكالات.",children:[
+{id:238,pid:76,title:"Host Diamonds",uri:"ag/host-diamonds",desc:"ألماس المضيفين - عرض ألماس المضيفين المكتسب من الهدايا."},
+{id:113,pid:76,title:"Coin Recharge",uri:"/charges",desc:"شحن العملات - إجراء عمليات شحن عملات للمستخدمين أو الوكالات."},
+{id:104,pid:76,title:"Charges Reports",uri:"/charges-reports",desc:"تقارير الشحن - تقارير تفصيلية عن كل عمليات الشحن حسب الفترة والدولة."},
+{id:216,pid:76,title:"Settings",uri:"charges-settings",desc:"إعدادات الشحن - تحديد أسعار الشحن والعمولات والحدود."}
+]},
+{id:51,pid:0,title:"Users",uri:null,desc:"إدارة المستخدمين - التحكم الكامل في حسابات المستخدمين وبياناتهم.",children:[
+{id:239,pid:51,title:"User Coin Reports",uri:"coin-reports",desc:"تقارير عملات المستخدمين - عرض حركة العملات لكل مستخدم."},
+{id:233,pid:51,title:"User Charges",uri:"user-charges",desc:"شحنات المستخدمين - عرض تاريخ شحنات كل مستخدم."},
+{id:14,pid:51,title:"Users",uri:"users",desc:"قائمة المستخدمين - عرض كل المستخدمين مع فلترة وبحث، تعديل البيانات، إضافة رصيد، حظر."},
+{id:281,pid:51,title:"Change Country Requests",uri:"country-requests",desc:"طلبات تغيير الدولة - مراجعة وقبول أو رفض طلبات تغيير دولة المستخدم."},
+{id:201,pid:51,title:"User Log",uri:"soon",desc:"سجل المستخدم - عرض سجل نشاط المستخدمين."},
+{id:68,pid:51,title:"Bans",uri:"bans",desc:"حظر المستخدمين - عرض المستخدمين المحظورين وإدارة الحظر."},
+{id:43,pid:51,title:"Complaints",uri:"tickets",desc:"شكاوى المستخدمين - عرض ومتابعة التذاكر والشكاوى المقدمة."},
+{id:128,pid:51,title:"Deleted Accounts",uri:"/trashed-users",desc:"الحسابات المحذوفة - عرض الحسابات المحذوفة مع إمكانية الاستعادة."},
+{id:74,pid:51,title:"User Settings",uri:"users-settings",desc:"إعدادات المستخدمين - إعدادات عامة تتعلق بحسابات المستخدمين."}
+]},
+{id:202,pid:0,title:"Regions",uri:null,desc:"إدارة المناطق الجغرافية - تقسيم وإدارة المناطق الجغرافية في التطبيق.",children:[
+{id:203,pid:202,title:"Regions",uri:"soon",desc:"قائمة المناطق - عرض وإدارة المناطق الجغرافية."},
+{id:204,pid:202,title:"Region Settings",uri:"soon",desc:"إعدادات المناطق - تحديد إعدادات كل منطقة."}
+]},
+{id:182,pid:0,title:"Advertisements",uri:null,desc:"إدارة الإعلانات والبانرات - التحكم في كل الإعلانات التي تظهر للمستخدمين.",children:[
+{id:260,pid:182,title:"Banner Setting",uri:"home-carousel-settings",desc:"إعدادات البانر - التحكم في إعدادات عرض البانرات على الصفحة الرئيسية."},
+{id:30,pid:182,title:"Banner",uri:"home_carousels",desc:"البانرات - إنشاء وتعديل البانرات الإعلانية التي تظهر في الصفحة الرئيسية للتطبيق."},
+{id:108,pid:182,title:"Splash",uri:"/banners",desc:"شاشة البداية (Splash) - إدارة الإعلانات التي تظهر عند فتح التطبيق."},
+{id:28,pid:182,title:"Official Messages",uri:"official_msgs",desc:"الرسائل الرسمية - إرسال رسائل رسمية لكل المستخدمين أو مجموعة محددة."},
+{id:117,pid:182,title:"Advertising Space",uri:"/offers",desc:"المساحات الإعلانية - إدارة العروض والمساحات الإعلانية في التطبيق."}
+]},
+{id:110,pid:0,title:"Store",uri:null,desc:"المتجر - إدارة كل العناصر القابلة للشراء في التطبيق.",children:[
+{id:133,pid:110,title:"Distinguished Identifier",uri:null,desc:"المعرفات المميزة - إدارة الأرقام المميزة (Special IDs).",subchildren:[
+{id:126,pid:133,title:"Featured IDs",uri:"/special-wares",desc:"الأرقام المميزة المتاحة - عرض وإدارة الأرقام المميزة للبيع."},
+{id:127,pid:133,title:"History of Unique Identifiers",uri:"/special-histories",desc:"تاريخ المعرفات المميزة - سجل عمليات شراء الأرقام المميزة."},
+{id:189,pid:133,title:"ID Color",uri:"image-colors",desc:"ألوان المعرفات - إدارة ألوان الأرقام المميزة."}
+]},
+{id:152,pid:110,title:"Store",uri:"ware-management",desc:"إدارة المتجر - عرض وإدارة كل العناصر (إطارات، تأثيرات دخول، فقاعات دردشة)."},
+{id:211,pid:110,title:"Store Settings",uri:"soon",desc:"إعدادات المتجر - إعدادات عامة للمتجر."}
+]},
+{id:153,pid:0,title:"VIP",uri:null,desc:"نظام VIP - إدارة باقات VIP والامتيازات الخاصة للمستخدمين.",children:[
+{id:148,pid:153,title:"VIPs",uri:"ovip",desc:"قائمة باقات VIP - عرض وتعديل باقات VIP المختلفة (مرسل، مستقبل، CP، غرف، شحن)."},
+{id:149,pid:153,title:"VIP Privileges",uri:"vip_privilege",desc:"امتيازات VIP - تحديد الامتيازات الخاصة بكل مستوى VIP."},
+{id:214,pid:153,title:"VIP Settings",uri:"soon",desc:"إعدادات VIP - إعدادات عامة لنظام VIP."}
+]},
+{id:161,pid:0,title:"Families",uri:null,desc:"نظام العائلات - إدارة العائلات ومستوياتها.",children:[
+{id:53,pid:161,title:"Families",uri:"/families",desc:"قائمة العائلات - عرض كل العائلات مع بياناتها وأعضائها ومستوياتها."},
+{id:38,pid:161,title:"Family Levels",uri:"family_levels",desc:"مستويات العائلات - إعداد المستويات والمتطلبات والمكافآت لكل مستوى."}
+]},
+{id:168,pid:0,title:"Agency System",uri:null,desc:"نظام الوكالات - النظام الأساسي لإدارة الوكالات والمضيفين والرواتب.",children:[
+{id:275,pid:168,title:"Form Templates",uri:"form-templates",desc:"قوالب النماذج - إنشاء وتعديل قوالب النماذج المستخدمة في نظام الوكالات."},
+{id:274,pid:168,title:"Form Requests",uri:"form-requests",desc:"طلبات النماذج - مراجعة الطلبات المقدمة عبر النماذج."},
+{id:240,pid:168,title:"Salary Pay",uri:"salaries-v2",desc:"صرف الرواتب - صرف رواتب المضيفين بناءً على تحقيق التارجت."},
+{id:172,pid:168,title:"Internal Sales System",uri:null,desc:"نظام المبيعات الداخلي - إدارة طلبات صرف الرواتب والتحويلات.",subchildren:[
+{id:165,pid:172,title:"Countries Where Salary Payments Are Available",uri:"charge-country",desc:"الدول المتاح فيها صرف الرواتب."},
+{id:167,pid:172,title:"Salary Requests",uri:"salary-requests",desc:"طلبات صرف الرواتب - مراجعة وقبول أو رفض طلبات الصرف."},
+{id:164,pid:172,title:"Report",uri:"agent-salary-requests",desc:"تقارير طلبات الرواتب."},
+{id:163,pid:172,title:"Transaction Request Problem",uri:"transaction-request-problem",desc:"مشاكل طلبات التحويل - متابعة وحل المشاكل."}
+]},
+{id:171,pid:168,title:"Host Agencies",uri:null,desc:"وكالات المضيفين - إدارة الوكالات والمضيفين والتارجت.",subchildren:[
+{id:66,pid:171,title:"Hosts",uri:"ag/users",desc:"المضيفين - قائمة كل المضيفين في الوكالات مع بياناتهم وأدائهم."},
+{id:36,pid:171,title:"Hosts Target",uri:"userTarget",desc:"تارجت المضيفين - متابعة تحقيق التارجت الشهري لكل مضيف."},
+{id:92,pid:171,title:"Users Wallet",uri:"/sallaries",desc:"محافظ المستخدمين - عرض أرصدة ورواتب المضيفين."},
+{id:106,pid:171,title:"Agency Hosts Reports",uri:"/report_user",desc:"تقارير مضيفي الوكالات - تقارير أداء المضيفين."},
+{id:34,pid:171,title:"Agencies",uri:"agencies",desc:"الوكالات - قائمة كل الوكالات مع بياناتها وعدد المضيفين والأداء."},
+{id:67,pid:171,title:"Achieved Target",uri:"userTarget",desc:"التارجت المحقق - عرض المضيفين الذين حققوا التارجت."},
+{id:83,pid:171,title:"Reports",uri:"/reports",desc:"تقارير الوكالات - تقارير شاملة عن أداء الوكالات."},
+{id:179,pid:171,title:"Host Agencies Settings",uri:null,desc:"إعدادات وكالات المضيفين.",subchildren2:[
+{id:35,pid:179,title:"Agency Join Requests",uri:"agency_join_requests",desc:"طلبات الانضمام للوكالات - قبول أو رفض طلبات المضيفين."},
+{id:136,pid:179,title:"Request Agencies",uri:"request-agencies",desc:"طلبات إنشاء وكالات جديدة."}
+]}
+]},
+{id:169,pid:168,title:"Charging Agencies",uri:null,desc:"وكالات الشحن - إدارة وكالات الشحن والتحويلات.",subchildren:[
+{id:116,pid:169,title:"Charge Agents",uri:"charge-agencies",desc:"وكلاء الشحن - قائمة وكلاء الشحن المعتمدين."},
+{id:166,pid:169,title:"Verified Charging Agents",uri:"agency-country",desc:"وكلاء الشحن المعتمدين حسب الدولة."},
+{id:118,pid:169,title:"Payment Methods for Charging Agents",uri:"/payment-gateways",desc:"طرق الدفع لوكلاء الشحن - إدارة بوابات الدفع المتاحة."},
+{id:188,pid:169,title:"Settings Charging Agencies",uri:"agency-setting-manger",desc:"إعدادات وكالات الشحن."}
+]},
+{id:173,pid:168,title:"Agency Manager",uri:null,desc:"مدير الوكالات (BD) - إدارة مديري الأعمال.",subchildren:[
+{id:232,pid:173,title:"BD",uri:"usersBd",desc:"قائمة الـ BD - عرض وإدارة مديري الأعمال وتوزيع الوكالات عليهم."},
+{id:220,pid:173,title:"Setting Agency Manager",uri:"usersBd-settings",desc:"إعدادات مدير الوكالات - الـ BD الافتراضي، التعيين التلقائي."}
+]},
+{id:102,pid:168,title:"Setting Agency System",uri:"/agency-settings",desc:"إعدادات نظام الوكالات - النسب، الحد الأدنى، القواعد العامة."}
+]},
+{id:50,pid:0,title:"Room",uri:null,desc:"إدارة الغرف - التحكم الكامل في غرف التطبيق.",children:[
+{id:261,pid:50,title:"Room Cup Target",uri:null,desc:"كأس الغرف - نظام المسابقات بين الغرف.",subchildren:[
+{id:262,pid:261,title:"Room Cup Target",uri:"room-cup-target",desc:"تارجت كأس الغرف - تحديد أهداف المسابقة."},
+{id:263,pid:261,title:"Room Cup Settings",uri:"room-cup-settings",desc:"إعدادات كأس الغرف."},
+{id:264,pid:261,title:"Room Cup Reports",uri:"room-cup-reports",desc:"تقارير كأس الغرف - نتائج المسابقات."}
+]},
+{id:248,pid:50,title:"Live Rooms",uri:"live-rooms",desc:"الغرف المباشرة - عرض الغرف النشطة حالياً مع عدد الزوار."},
+{id:17,pid:50,title:"Rooms",uri:"rooms",desc:"قائمة الغرف - عرض كل الغرف مع الفلترة حسب النوع والدولة والحالة."},
+{id:25,pid:50,title:"Room Categories",uri:"categories",desc:"تصنيفات الغرف - إنشاء وتعديل تصنيفات الغرف."},
+{id:150,pid:50,title:"Room VIPs",uri:"room-vips",desc:"VIP الغرف - مستويات VIP الخاصة بالغرف وامتيازاتها."},
+{id:27,pid:50,title:"Backgrounds",uri:"backgrounds",desc:"خلفيات الغرف - إدارة الخلفيات المتاحة للغرف."},
+{id:29,pid:50,title:"Emojis",uri:"emojis",desc:"الإيموجي - إدارة الإيموجي والملصقات المخصصة."},
+{id:162,pid:50,title:"Room Settings",uri:"room-settings",desc:"إعدادات الغرف - إعدادات عامة للغرف مثل القواعد والحدود."}
+]},
+{id:252,pid:0,title:"Room Boom",uri:null,desc:"نظام Room Boom - نظام مكافآت خاص بالغرف النشطة.",children:[
+{id:254,pid:252,title:"Rules",uri:"super-boom-rules",desc:"قواعد Room Boom - تحديد قواعد وشروط المشاركة."},
+{id:246,pid:252,title:"Room Boom",uri:"/room_boom_levels",desc:"مستويات Room Boom - إعداد المستويات والمكافآت."},
+{id:253,pid:252,title:"Room Boom Winners",uri:"/room_boom_winners",desc:"فائزي Room Boom - عرض الفائزين وتاريخ الفوز."}
+]},
+{id:241,pid:0,title:"Gifts",uri:null,desc:"إدارة الهدايا - التحكم في كل أنواع الهدايا في التطبيق.",children:[
+{id:259,pid:241,title:"Lucky Gift Setting",uri:"lucky-gift-settings",desc:"إعدادات هدايا الحظ - التحكم في نسب الربح والجوائز العشوائية."},
+{id:244,pid:241,title:"Gift Logs",uri:"gift-summary",desc:"سجل الهدايا - ملخص عن أكثر الهدايا إرسالاً واستقبالاً."},
+{id:20,pid:241,title:"Gifts",uri:"/gifts",desc:"قائمة الهدايا - عرض وإنشاء وتعديل الهدايا مع الصور والأسعار والتصنيفات."}
+]},
+{id:140,pid:0,title:"CP",uri:null,desc:"نظام الأزواج (Couple) - إدارة علاقات الأزواج في التطبيق.",children:[
+{id:235,pid:140,title:"CP Reports",uri:"cp-reports",desc:"تقارير الأزواج - إحصائيات عن الأزواج وأنشطتهم."},
+{id:141,pid:140,title:"CP Relations",uri:"cp-relations",desc:"علاقات الأزواج - عرض كل الأزواج المسجلين وبياناتهم."},
+{id:142,pid:140,title:"Weekly CP",uri:"weekly-cp",desc:"الأزواج الأسبوعيين - ترتيب الأزواج الأكثر نشاطاً أسبوعياً."}
+]},
+{id:96,pid:0,title:"Achievements",uri:null,desc:"نظام الإنجازات - إدارة الإنجازات والتحديات.",children:[
+{id:97,pid:96,title:"Achievements",uri:"/achievements",desc:"قائمة الإنجازات - إنشاء وتعديل الإنجازات مع الشروط والمكافآت."},
+{id:98,pid:96,title:"Achievement Reports",uri:"/user-achievement-levels",desc:"تقارير الإنجازات - عرض المستخدمين الذين حققوا إنجازات."}
+]},
+{id:249,pid:0,title:"Invitation Code",uri:null,desc:"نظام أكواد الدعوة - إدارة أكواد دعوة الأصدقاء.",children:[
+{id:250,pid:249,title:"Settings",uri:"/invitation-code/settings",desc:"إعدادات أكواد الدعوة - تحديد المكافآت والشروط."},
+{id:105,pid:249,title:"Invitation Code",uri:"/parent-users",desc:"أكواد الدعوة - عرض المستخدمين الذين دعوا آخرين وعدد الدعوات."}
+]},
+{id:71,pid:0,title:"Group Chat",uri:null,desc:"الدردشة الجماعية - إدارة غرف الدردشة الجماعية.",children:[
+{id:186,pid:71,title:"Group Chat",uri:"group-chat",desc:"قائمة الدردشات الجماعية - عرض وإدارة غرف الدردشة."},
+{id:187,pid:71,title:"Settings",uri:"setting-group-char",desc:"إعدادات الدردشة الجماعية - تحديد التكلفة والحدود."}
+]},
+{id:183,pid:0,title:"Lucky Box",uri:null,desc:"صناديق الحظ - نظام الصناديق العشوائية.",children:[
+{id:237,pid:183,title:"Lucky Box Setting",uri:"lucky-box-settings",desc:"إعدادات صناديق الحظ - تحديد المحتويات والنسب."},
+{id:46,pid:183,title:"All Boxes",uri:"lucky-boxes",desc:"كل الصناديق - عرض كل صناديق الحظ المتاحة."},
+{id:47,pid:183,title:"Dumped Boxes",uri:"thrown-boxes",desc:"الصناديق المرمية - عرض الصناديق التي تم التخلص منها."}
+]},
+{id:119,pid:0,title:"Events",uri:null,desc:"نظام الأحداث والفعاليات - إدارة المسابقات والأحداث الخاصة.",children:[
+{id:215,pid:119,title:"Event Period",uri:"event-period",desc:"فترة الحدث - تحديد مدة كل حدث."},
+{id:123,pid:119,title:"Charging Events",uri:"/target-events",desc:"أحداث الشحن - مسابقات مرتبطة بالشحن."},
+{id:120,pid:119,title:"PK Event",uri:"/pk-events",desc:"أحداث PK - مسابقات PK بين المضيفين."},
+{id:124,pid:119,title:"Weekly Star Events",uri:"/weekly-events-new",desc:"أحداث النجم الأسبوعي - مسابقة أسبوعية لأفضل المضيفين."},
+{id:121,pid:119,title:"General Rules",uri:"/general-rols",desc:"القواعد العامة - قواعد المشاركة في الأحداث."},
+{id:122,pid:119,title:"Events Reports",uri:"/event-reports",desc:"تقارير الأحداث - نتائج وإحصائيات الأحداث."}
+]},
+{id:265,pid:0,title:"Milestones",uri:null,desc:"نظام المراحل - إدارة المراحل والإنجازات التدريجية.",children:[
+{id:266,pid:265,title:"User History Rewards",uri:"user-history-rewards",desc:"تاريخ مكافآت المستخدمين - عرض المكافآت التي حصل عليها كل مستخدم."},
+{id:267,pid:265,title:"Milestones",uri:"milestones",desc:"المراحل - إنشاء وتعديل المراحل مع الشروط والمكافآت."}
+]},
+{id:180,pid:0,title:"Reels",uri:null,desc:"نظام الريلز - إدارة الفيديوهات القصيرة.",children:[
+{id:103,pid:180,title:"Reels",uri:"/reels",desc:"قائمة الريلز - عرض وإدارة الفيديوهات القصيرة المنشورة."},
+{id:185,pid:180,title:"Reels Reports",uri:"report-reals",desc:"تقارير الريلز - إحصائيات عن الريلز والتفاعلات."}
+]},
+{id:181,pid:0,title:"Moment",uri:null,desc:"نظام اللحظات - إدارة منشورات اللحظات (مثل القصص).",children:[
+{id:84,pid:181,title:"Moment",uri:"/moments",desc:"قائمة اللحظات - عرض وإدارة منشورات اللحظات."},
+{id:101,pid:181,title:"Moment Reports",uri:"/report-moments",desc:"تقارير اللحظات - بلاغات وإحصائيات عن اللحظات."}
+]},
+{id:2,pid:0,title:"Employees and Permissions",uri:null,desc:"الموظفين والصلاحيات - إدارة حسابات المديرين وأدوارهم وصلاحياتهم.",children:[
+{id:3,pid:2,title:"Employees",uri:"auth/users",desc:"الموظفين - إنشاء وتعديل حسابات المديرين والموظفين."},
+{id:4,pid:2,title:"Roles",uri:"auth/roles",desc:"الأدوار - إنشاء أدوار مختلفة وتحديد صلاحيات كل دور."},
+{id:7,pid:2,title:"Operation Log",uri:"auth/logs",desc:"سجل العمليات - تتبع كل العمليات التي قام بها المديرين."}
+]},
+{id:145,pid:0,title:"Settings",uri:null,desc:"الإعدادات العامة - كل إعدادات التطبيق.",children:[
+{id:175,pid:145,title:"Work Settings",uri:null,desc:"إعدادات العمل - إعدادات تتعلق بالعمليات اليومية.",subchildren:[
+{id:177,pid:175,title:"Delete Account",uri:"delete-accounts",desc:"حذف الحسابات - إدارة طلبات حذف الحسابات."},
+{id:157,pid:175,title:"FAQ",uri:"questions",desc:"الأسئلة الشائعة - إدارة الأسئلة والأجوبة الشائعة."},
+{id:26,pid:175,title:"Countries",uri:"countries",desc:"الدول - إدارة الدول المتاحة في التطبيق."},
+{id:44,pid:175,title:"Work Pages",uri:"/pages",desc:"صفحات العمل - إدارة الصفحات الثابتة (سياسة الخصوصية، الشروط)."},
+{id:40,pid:175,title:"Coins",uri:"payment-coins",desc:"العملات - تحديد أسعار باقات العملات."},
+{id:45,pid:175,title:"Exchange Currencies",uri:"exchanges",desc:"تبادل العملات - إعدادات تحويل العملات."},
+{id:39,pid:175,title:"Silver Coins",uri:"silver",desc:"العملات الفضية - إدارة العملات الفضية."}
+]},
+{id:176,pid:145,title:"Sensitive Settings",uri:null,desc:"إعدادات حساسة - إعدادات تتطلب صلاحيات عالية.",subchildren:[
+{id:77,pid:176,title:"Updates",uri:"custom-page",desc:"التحديثات - إدارة تحديثات التطبيق وإجبار التحديث."},
+{id:146,pid:176,title:"Configurations",uri:"configs",desc:"التكوينات - إعدادات النظام الأساسية (مفاتيح API، أسعار الخدمات)."}
+]},
+{id:174,pid:145,title:"System Settings",uri:null,desc:"إعدادات النظام - إعدادات عامة للنظام.",subchildren:[
+{id:245,pid:174,title:"App Feature",uri:"/app-feature",desc:"ميزات التطبيق - تفعيل/تعطيل ميزات معينة في التطبيق."},
+{id:212,pid:174,title:"Setting",uri:"settings",desc:"الإعدادات - الإعدادات العامة للتطبيق."},
+{id:213,pid:174,title:"Language",uri:"languages",desc:"اللغات - إدارة اللغات المتاحة في التطبيق."},
+{id:158,pid:174,title:"Login Reward",uri:"daily-gift-types",desc:"مكافأة تسجيل الدخول - إعداد المكافآت اليومية لتسجيل الدخول."}
+]}
+]},
+{id:111,pid:0,title:"Level",uri:null,desc:"نظام المستويات - إدارة مستويات المستخدمين والمكافآت.",children:[
+{id:16,pid:111,title:"Levels",uri:"vips",desc:"المستويات - عرض وتعديل مستويات المستخدمين مع المتطلبات لكل مستوى."},
+{id:130,pid:111,title:"Level Gifts",uri:"/level-intervals",desc:"هدايا المستويات - تحديد المكافآت التي يحصل عليها المستخدم عند الوصول لمستوى معين."}
+]},
+{id:155,pid:0,title:"Reports",uri:null,desc:"التقارير العامة - تقارير شاملة عن أداء التطبيق."}
+];
+</script>
+<script>
+const UI_STRINGS = {
+ar:{dir:'rtl',title:'🦅 دليل لوحة تحكم Meow Live',subtitle:'شرح شامل لكل أقسام الداشبورد - مبني من المنيو الفعلي للداشبورد',search:'ابحث عن قسم...',note:'💡 هذا الدليل مبني من جدول admin_menu في الداتابيز بنفس الترتيب. يمكنك إضافة صور وفيديوهات وملاحظات لكل قسم.',upload:'اضغط هنا لإضافة صورة أو فيديو لشرح هذا القسم',notePlaceholder:'اكتب ملاحظاتك هنا...',saved:'✅ تم الحفظ',sideTitle:'🦅 Meow Live Dashboard Guide',sideDesc:'دليل شامل لكل أقسام لوحة التحكم',deleteConfirm:'حذف؟'},
+en:{dir:'ltr',title:'🦅 Meow Live Dashboard Guide',subtitle:'Comprehensive guide for all dashboard sections - built from the actual dashboard menu',search:'Search for a section...',note:'💡 This guide is built from the admin_menu table in the database with the same order. You can add images, videos and notes for each section.',upload:'Click here to add an image or video to explain this section',notePlaceholder:'Write your notes here...',saved:'✅ Saved',sideTitle:'🦅 Meow Live Dashboard Guide',sideDesc:'Comprehensive guide for all dashboard sections',deleteConfirm:'Delete?'},
+tr:{dir:'ltr',title:'🦅 Meow Live Kontrol Paneli Kılavuzu',subtitle:'Tüm kontrol paneli bölümlerinin kapsamlı kılavuzu - gerçek menüden oluşturulmuştur',search:'Bölüm ara...',note:'💡 Bu kılavuz veritabanındaki admin_menu tablosundan aynı sırayla oluşturulmuştur. Her bölüm için resim, video ve not ekleyebilirsiniz.',upload:'Bu bölümü açıklamak için resim veya video eklemek için tıklayın',notePlaceholder:'Notlarınızı buraya yazın...',saved:'✅ Kaydedildi',sideTitle:'🦅 Meow Live Kontrol Paneli',sideDesc:'Tüm bölümlerin kapsamlı kılavuzu',deleteConfirm:'Sil?'},
+hi:{dir:'ltr',title:'🦅 Meow Live डैशबोर्ड गाइड',subtitle:'डैशबोर्ड के सभी अनुभागों की व्यापक मार्गदर्शिका - वास्तविक मेनू से निर्मित',search:'अनुभाग खोजें...',note:'💡 यह गाइड डेटाबेस में admin_menu तालिका से उसी क्रम में बनाई गई है। आप प्रत्येक अनुभाग के लिए चित्र, वीडियो और नोट्स जोड़ सकते हैं।',upload:'इस अनुभाग को समझाने के लिए चित्र या वीडियो जोड़ने के लिए यहां क्लिक करें',notePlaceholder:'अपने नोट्स यहां लिखें...',saved:'✅ सहेजा गया',sideTitle:'🦅 Meow Live डैशबोर्ड गाइड',sideDesc:'सभी अनुभागों की व्यापक मार्गदर्शिका',deleteConfirm:'हटाएं?'},
+es:{dir:'ltr',title:'🦅 Guía del Panel Meow Live',subtitle:'Guía completa de todas las secciones del panel - construida desde el menú real',search:'Buscar sección...',note:'💡 Esta guía está construida desde la tabla admin_menu en la base de datos con el mismo orden. Puedes agregar imágenes, videos y notas para cada sección.',upload:'Haz clic aquí para agregar una imagen o video para explicar esta sección',notePlaceholder:'Escribe tus notas aquí...',saved:'✅ Guardado',sideTitle:'🦅 Guía del Panel Meow Live',sideDesc:'Guía completa de todas las secciones',deleteConfirm:'¿Eliminar?'},
+zh:{dir:'ltr',title:'🦅 Meow Live 仪表板指南',subtitle:'所有仪表板部分的综合指南 - 从实际菜单构建',search:'搜索部分...',note:'💡 本指南从数据库中的 admin_menu 表以相同顺序构建。您可以为每个部分添加图片、视频和备注。',upload:'点击此处添加图片或视频来解释此部分',notePlaceholder:'在此处写下您的备注...',saved:'✅ 已保存',sideTitle:'🦅 Meow Live 仪表板指南',sideDesc:'所有部分的综合指南',deleteConfirm:'删除？'},
+id:{dir:'ltr',title:'🦅 Panduan Dashboard Meow Live',subtitle:'Panduan lengkap untuk semua bagian dashboard - dibangun dari menu sebenarnya',search:'Cari bagian...',note:'💡 Panduan ini dibangun dari tabel admin_menu di database dengan urutan yang sama. Anda dapat menambahkan gambar, video, dan catatan untuk setiap bagian.',upload:'Klik di sini untuk menambahkan gambar atau video untuk menjelaskan bagian ini',notePlaceholder:'Tulis catatan Anda di sini...',saved:'✅ Tersimpan',sideTitle:'🦅 Panduan Dashboard Meow Live',sideDesc:'Panduan lengkap untuk semua bagian',deleteConfirm:'Hapus?'}
+};
+
+let currentLang = localStorage.getItem('meow_guide_lang') || 'ar';
+
+function switchLang(lang) {
+currentLang = lang;
+localStorage.setItem('meow_guide_lang', lang);
+const s = UI_STRINGS[lang];
+document.documentElement.dir = s.dir;
+document.documentElement.lang = lang;
+if(s.dir === 'ltr') {
+document.querySelector('.sidebar').style.right = 'auto';
+document.querySelector('.sidebar').style.left = '0';
+document.querySelector('.sidebar').style.borderLeft = 'none';
+document.querySelector('.sidebar').style.borderRight = '1px solid #334155';
+document.querySelector('.main').style.marginRight = '0';
+document.querySelector('.main').style.marginLeft = '300px';
+} else {
+document.querySelector('.sidebar').style.right = '0';
+document.querySelector('.sidebar').style.left = 'auto';
+document.querySelector('.sidebar').style.borderRight = 'none';
+document.querySelector('.sidebar').style.borderLeft = '1px solid #334155';
+document.querySelector('.main').style.marginLeft = '0';
+document.querySelector('.main').style.marginRight = '300px';
+}
+document.getElementById('saveIndicator').textContent = s.saved;
+document.querySelector('#langSwitcher select').value = lang;
+renderAll();
+}
+
+const STORAGE_KEY = 'meow_guide_v2';
+function getStore(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch(e){return {}}}
+function setStore(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d));document.getElementById('saveIndicator').classList.add('show');setTimeout(()=>document.getElementById('saveIndicator').classList.remove('show'),1200)}
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+
+function renderAll(){
+const nav=document.getElementById('sidebarNav');
+const main=document.getElementById('mainContent');
+let navH='',mainH='';
+
+const s = UI_STRINGS[currentLang];
+document.querySelector('.sidebar .logo h2').textContent = s.sideTitle;
+document.querySelector('.sidebar .logo p').textContent = s.sideDesc;
+
+mainH+=`<div class="header-banner"><h1>${s.title}</h1><p>${s.subtitle}</p><div class="search-box"><input type="text" placeholder="${s.search}" oninput="searchSections(this.value)"></div></div>`;
+mainH+=`<div class="note-box"><p>${s.note}</p></div>`;
+
+MENU_DATA.forEach(item=>{
+const key='s'+item.id;
+const hasChildren=item.children&&item.children.length>0;
+
+// Sidebar
+navH+=`<div class="menu-parent" onclick="scrollToSection('${key}')">${item.title}`;
+if(hasChildren) navH+=`<span class="arrow" onclick="event.stopPropagation();toggleMenu(this)">◀</span>`;
+navH+=`</div>`;
+if(hasChildren){
+navH+=`<div class="menu-children">`;
+item.children.forEach(ch=>{
+if(ch.subchildren||ch.subchildren2){
+navH+=`<div class="menu-sub-parent" onclick="event.stopPropagation();toggleSubMenu(this)">${ch.title} <span class="arrow">◀</span></div>`;
+navH+=`<div class="menu-sub-children">`;
+const subs=ch.subchildren||ch.subchildren2||[];
+subs.forEach(sc=>{
+if(sc.subchildren2){
+navH+=`<div class="menu-sub-parent" style="padding-right:50px" onclick="event.stopPropagation();toggleSubMenu(this)">${sc.title} <span class="arrow">◀</span></div>`;
+navH+=`<div class="menu-sub-children">`;
+sc.subchildren2.forEach(sc2=>{navH+=`<a class="menu-sub-child" href="#s${sc2.id}" onclick="event.preventDefault();scrollToSection('s${sc2.id}')">${sc2.title}</a>`});
+navH+=`</div>`;
+} else {
+navH+=`<a class="menu-sub-child" href="#s${sc.id}" onclick="event.preventDefault();scrollToSection('s${sc.id}')">${sc.title}</a>`;
+}
+});
+navH+=`</div>`;
+} else {
+navH+=`<a class="menu-child" href="#s${ch.id}" onclick="event.preventDefault();scrollToSection('s${ch.id}')">${ch.title}</a>`;
+}
+});
+navH+=`</div>`;
+}
+
+// Main content
+mainH+=`<div class="section" id="${key}">`;
+mainH+=`<h2>${item.title}</h2>`;
+mainH+=`<p>${item.desc}</p>`;
+
+if(hasChildren){
+mainH+=`<div class="sub-items">`;
+item.children.forEach(ch=>{
+mainH+=renderSubItem(ch);
+const nested=ch.subchildren||ch.subchildren2||[];
+nested.forEach(sc=>{
+mainH+=renderSubItem(sc);
+const nested2=sc.subchildren2||[];
+nested2.forEach(sc2=>mainH+=renderSubItem(sc2));
+});
+});
+mainH+=`</div>`;
+}
+
+mainH+=`<div class="media-zone"><div class="upload-icon">📸</div><div class="upload-text">${s.upload}</div><input type="file" accept="image/*,video/*" onchange="handleUpload(this,'${key}')"></div>`;
+mainH+=`<div class="gallery" id="gal-${key}"></div>`;
+mainH+=`<textarea class="note-input" placeholder="${s.notePlaceholder}" data-key="${key}" oninput="saveNote(this)"></textarea>`;
+mainH+=`</div>`;
+});
+
+nav.innerHTML=navH;
+main.innerHTML=mainH;
+loadSaved();
+}
+
+function renderSubItem(item){
+const s = UI_STRINGS[currentLang];
+const subKey='s'+item.id;
+let h=`<div class="sub-item" id="${subKey}"><h4>${item.title}</h4><p>${item.desc}</p>`;
+if(item.uri&&item.uri!=='soon') h+=`<span class="path">/admin/${item.uri}</span>`;
+h+=`<div class="media-zone" style="min-height:80px;padding:12px;margin:8px 0"><div class="upload-icon" style="font-size:1.5em">📸</div><div class="upload-text" style="font-size:.8em">${s.upload}</div><input type="file" accept="image/*,video/*" multiple onchange="handleUpload(this,'${subKey}')"></div>`;
+h+=`<div class="gallery" id="gal-${subKey}"></div>`;
+h+=`<textarea class="note-input" placeholder="${s.notePlaceholder}" data-key="${subKey}" oninput="saveNote(this)" style="min-height:40px;font-size:.8em"></textarea>`;
+h+=`</div>`;
+return h;
+}
+
+function scrollToSection(id){
+const el=document.getElementById(id);
+if(el){el.scrollIntoView({behavior:'smooth',block:'start'});if(window.innerWidth<=768)toggleSidebar()}
+}
+
+function toggleMenu(arrow){
+const children=arrow.closest('.menu-parent').nextElementSibling;
+if(children&&children.classList.contains('menu-children')){children.classList.toggle('open');arrow.classList.toggle('open')}
+}
+
+function toggleSubMenu(el){
+const children=el.nextElementSibling;
+if(children){children.classList.toggle('open');el.querySelector('.arrow').classList.toggle('open')}
+}
+
+function searchSections(q){
+q=q.toLowerCase().trim();
+document.querySelectorAll('.section').forEach(s=>{s.style.display=(!q||s.textContent.toLowerCase().includes(q))?'':'none'});
+}
+
+function handleUpload(input,key){
+const files=input.files;if(!files.length)return;
+Array.from(files).forEach((file,i)=>{
+const reader=new FileReader();
+reader.onload=function(e){
+const d=getStore();if(!d[key])d[key]={media:[],note:''};
+d[key].media.push({id:Date.now()+i,type:file.type.startsWith('video')?'video':'image',data:e.target.result,name:file.name});
+setStore(d);renderGallery(key);
+};
+reader.readAsDataURL(file);
+});
+input.value='';
+}
+
+function removeMedia(key,mid){
+if(!confirm(UI_STRINGS[currentLang].deleteConfirm))return;
+const d=getStore();if(d[key])d[key].media=d[key].media.filter(m=>m.id!==mid);
+setStore(d);renderGallery(key);
+}
+
+function renderGallery(key){
+const g=document.getElementById('gal-'+key);if(!g)return;
+const d=getStore();const items=(d[key]&&d[key].media)||[];
+g.innerHTML=items.map(i=>`<div class="gallery-item"><button class="remove-gallery" onclick="removeMedia('${key}',${i.id})">✕</button>${i.type==='video'?`<video src="${i.data}" controls></video>`:`<img src="${i.data}" onclick="openLB(this.src)">`}<div class="caption">${i.name}</div></div>`).join('');
+}
+
+function saveNote(ta){
+const key=ta.dataset.key;const d=getStore();
+if(!d[key])d[key]={media:[],note:''};d[key].note=ta.value;setStore(d);
+}
+
+function collectAllIds(items){
+let ids=[];
+items.forEach(item=>{
+ids.push(item.id);
+if(item.children) item.children.forEach(ch=>{
+ids.push(ch.id);
+const nested=ch.subchildren||ch.subchildren2||[];
+nested.forEach(sc=>{ids.push(sc.id);const n2=sc.subchildren2||[];n2.forEach(sc2=>ids.push(sc2.id))});
+});
+});
+return ids;
+}
+
+function loadSaved(){
+const d=getStore();
+document.querySelectorAll('textarea.note-input').forEach(ta=>{const k=ta.dataset.key;if(d[k]&&d[k].note)ta.value=d[k].note});
+collectAllIds(MENU_DATA).forEach(id=>renderGallery('s'+id));
+}
+
+function openLB(src){
+const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;display:flex;align-items:center;justify-content:center;cursor:pointer';
+o.onclick=()=>o.remove();const img=document.createElement('img');img.src=src;img.style.cssText='max-width:90%;max-height:90%;border-radius:8px';
+o.appendChild(img);document.body.appendChild(o);
+}
+
+// Initialize with saved language
+switchLang(currentLang);
+</script>
+</body>
+</html>

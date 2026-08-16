@@ -1,0 +1,13 @@
+{
+    "name": "HostLevel",
+    "alias": "hostlevel",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\HostLevel\\Providers\\HostLevelServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

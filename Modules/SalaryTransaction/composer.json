@@ -1,0 +1,38 @@
+{
+    "name": "nwidart/salarytransaction",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\SalaryTransaction\\": "",
+            "Modules\\SalaryTransaction\\App\\": "app/",
+            "Modules\\SalaryTransaction\\Database\\Factories\\": "database/factories/",
+            "Modules\\SalaryTransaction\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\SalaryTransaction\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "helper": [
+            "@php ../../artisan clear-compiled",
+            "@php ../../artisan ide-helper:generate",
+            "@php ../../artisan ide-helper:model --dir=\"Modules/SalaryTransaction/Entities\""
+        ]
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "name": "Charizma",
+    "alias": "Charizma",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Charizma\\Providers\\CharizmaServiceProvider"
+    ],
+    "files": []
+}

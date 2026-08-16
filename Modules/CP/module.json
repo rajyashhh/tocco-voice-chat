@@ -1,0 +1,13 @@
+{
+    "name": "CP",
+    "alias": "cp",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CP\\Providers\\CPServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

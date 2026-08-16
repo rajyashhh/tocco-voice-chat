@@ -1,0 +1,74 @@
+# Meow Live — Caddy reverse proxy (بوابة واحدة، دومين واحد).
+#
+# يواجه Caddy الإنترنت على 80/443 وينهي TLS تلقائياً (Let's Encrypt / ACME)، ثم:
+#   - /connection/*  -> centrifugo:8000  (WebSocket طويل العمر للريل تايم)
+#   - /health        -> centrifugo:8000  (فحص صحة الريل تايم)
+#   - أي مسار آخر    -> meow-app:8000    (التطبيق + الـAPI + لوحة الأدمن)
+#
+# هذا نفس النمط الذي عمله تطبيق الموبايل يتوقعه:
+#   API_BASE_URL   = https://APP_DOMAIN
+#   CENTRIFUGO_WSS = wss://APP_DOMAIN/connection/websocket
+#
+# المتطلب: المنفذان 80 و 443 مفتوحان للإنترنت + سجل DNS A لـ APP_DOMAIN يشير للـ VM.
+# ملاحظة: منفذ Centrifugo (8000) و meow-app لا يُكشفان للإنترنت — فقط Caddy يصل إليهما داخلياً.
+
+{
+	# بريد ACME لإشعارات Let's Encrypt (انتهاء/مشاكل الشهادة). يُحقن وقت التشغيل عبر env.
+	email {$ACME_EMAIL}
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+
+	# فحص صحة الريل تايم (اختياري، خفيف).
+	handle /health {
+		reverse_proxy centrifugo:8000
+	}
+
+	# مسار WebSocket للعملاء (centrifuge-dart): /connection/websocket.
+	# Caddy يكشف ترقية WS تلقائياً ويتعامل مع الاتصالات طويلة العمر.
+	handle /connection/* {
+		reverse_proxy centrifugo:8000 {
+			# مهل طويلة للاتصالات الدائمة (WS) — لا تقطع الاتصال الصامت مبكراً.
+			transport http {
+				dial_timeout 5s
+				read_timeout 0
+				write_timeout 0
+			}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# كل شيء آخر -> التطبيق (Octane/Swoole على 8000 داخلياً).
+	# ملاحظة: الـ HTTP API لـ Centrifugo (/api) لا يُكشف هنا — Laravel يصله داخلياً
+	# عبر http://centrifugo:8000/api على شبكة docker فقط.
+	handle {
+		reverse_proxy meow-app:8000 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+}
+
+# ───────────────────────────────────────────────────────────────────────────────
+# بديل: دومين منفصل للريل تايم (ws.your-domain.com) — لو فضّلت الفصل.
+# استبدل الكتلة أعلاه بكتلتين، واضبط CENTRIFUGO_WSS في بناء الـAPK على الدومين المنفصل.
+# ───────────────────────────────────────────────────────────────────────────────
+# {$APP_DOMAIN} {
+#   handle { reverse_proxy meow-app:8000 }
+# }
+# {$WS_HOST} {
+#   handle /connection/* { reverse_proxy centrifugo:8000 { transport http { read_timeout 0 write_timeout 0 } } }
+#   handle /health       { reverse_proxy centrifugo:8000 }
+#   handle               { respond "Not Found" 404 }
+# }
+# ───────────────────────────────────────────────────────────────────────────────

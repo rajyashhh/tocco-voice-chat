@@ -1,0 +1,13 @@
+{
+    "name": "TaskStream",
+    "alias": "taskstream",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\TaskStream\\Providers\\TaskStreamServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

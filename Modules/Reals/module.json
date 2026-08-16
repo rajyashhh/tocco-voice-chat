@@ -1,0 +1,13 @@
+{
+    "name": "Reals",
+    "alias": "reals",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Reals\\Providers\\RealsServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

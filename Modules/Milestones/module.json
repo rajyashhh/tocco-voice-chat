@@ -1,0 +1,13 @@
+{
+    "name": "Milestones",
+    "alias": "milestones",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Milestones\\Providers\\MilestonesServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

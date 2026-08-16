@@ -1,0 +1,13 @@
+{
+    "name": "RankingReward",
+    "alias": "rankingreward",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\RankingReward\\Providers\\RankingRewardServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

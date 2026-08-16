@@ -1,0 +1,13 @@
+{
+    "name": "Country",
+    "alias": "superadmin",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Country\\Providers\\SuperAdminServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
