@@ -1,0 +1,55 @@
+name: utd_video_effects_kit
+description: >
+  Real-time video filters & beauty effects (LUT color grading, skin smoothing,
+  whitening, background blur) for LiveKit-based Flutter apps. Exposes a
+  livekit_client TrackProcessor so it drops into any LocalVideoTrack capture
+  pipeline — including utd_live_room_kit. Modeled on ZEGOCLOUD's
+  zego_effects_plugin but built on flutter_webrtc + native GPU pipelines.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.4.3 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The effect is exposed as a livekit_client TrackProcessor<VideoProcessorOptions>
+  # so the kit attaches it to a LocalVideoTrack with zero glue. Kept in lockstep
+  # with utd_live_room_kit (^2.7.0, resolves to 2.8.0).
+  livekit_client: ^2.7.0
+
+  # Frame/track types (MediaStreamTrack) flow through this. The native pipeline
+  # intercepts WebRTC frames on this engine.
+  flutter_webrtc: ^1.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.utd.video_effects
+        pluginClass: UtdVideoEffectsPlugin
+      ios:
+        pluginClass: UtdVideoEffectsPlugin
+
+  # 512x512 square-LUT color filters (ColorfulStyle + whitening), addressable as
+  # `packages/utd_video_effects_kit/assets/luts/<key>.png`. Consumed by the
+  # native LUT pass (Milestone 1); see VideoEffectsFilters for the catalog.
+  assets:
+    - assets/luts/
+    # Picker preview thumbnails (portrait with each filter applied).
+    - assets/previews/
+    # Skin-tone presets (dual-LUT skin grade). Per-preset dirs — Flutter asset
+    # globs are not recursive.
+    - assets/skin/nuanbai/
+    - assets/skin/lengbai/
+    - assets/skin/fenbai/
+    - assets/skin/xiaomai/
+    - assets/skin/meihei/

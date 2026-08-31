@@ -1,0 +1,56 @@
+name: utd_audio_room_kit
+description: >
+  UTD Audio Room Kit — replaces zego_uikit_prebuilt_live_audio_room
+  with a LiveKit-based implementation. Provides seat management,
+  RTM messaging, minimize/PiP, and 8 layout modes.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.4.3 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # LiveKit SDK — core audio/video engine
+  livekit_client: ^2.7.0
+
+  # WebRTC — direct access to Bluetooth-preferring audio routing
+  flutter_webrtc: ^1.4.0
+
+  # State management
+  flutter_bloc: ^9.1.1
+
+  # Dependency injection
+  get_it: ^9.2.0
+
+  # Functional programming (Either type)
+  dartz: ^0.10.1
+
+  # Equality comparison
+  equatable: ^2.0.8
+
+  # Responsive UI
+  flutter_screenutil: ^5.9.3
+
+  # Audio session configuration (iOS critical)
+  audio_session: ^0.1.21
+
+  # Runtime permission requests (microphone)
+  permission_handler: ^12.0.1
+
+  # HTTP client for UTD Stream API
+  dio: ^5.4.0
+
+  # Pretty Dio logger
+  pretty_dio_logger: ^1.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,24 @@
+name: utd_video_effects_kit_example
+description: Demonstrates utd_video_effects_kit — a camera preview with live
+  beauty/filter sliders, publishing through a LiveKit LocalVideoTrack.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.3 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  livekit_client: ^2.7.0
+  utd_video_effects_kit:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

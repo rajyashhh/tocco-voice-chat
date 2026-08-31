@@ -1,0 +1,56 @@
+part of 'package:general/src/features/setting/presentation/settings_screen.dart';
+
+class SettingSingleItem extends StatelessWidget {
+  const SettingSingleItem({
+    super.key,
+    required this.title,
+    required this.onTap,
+    this.sizIcon,
+    this.margin,
+    this.isLogOut,
+    this.isPaddingContainer,
+  });
+
+  final String title;
+  final VoidCallback onTap;
+  final double? sizIcon;
+  final double? margin;
+  final bool? isPaddingContainer;
+  final bool? isLogOut;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: 4.radius,
+      child: Container(
+        margin: context.paddingSymmetric(vertical: margin ?? 0),
+        padding: context.paddingSymmetric(
+            horizontal: 18, vertical: isPaddingContainer ?? false ? 15 : 0),
+        width: ScreenUtil().screenWidth,
+        color: ColorManager.scaffoldBg,
+        child: isLogOut ?? false
+            ? TextWidget(title.tr(),
+                textAlign: TextAlign.center,
+                style: context.bodyMedium
+                    .size(15)
+                    .w500
+                    .colorExt(ColorManager.redAccount))
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  TextWidget(title.tr(),
+                      textAlign: TextAlign.center,
+                      style: context.bodyMedium.size(15).w500.colorExt(ColorManager.textPrimary)
+                    ),
+                    const Spacer(),
+                    ForwardChevron(
+                      color: ColorManager.iconColor,
+                      size: 10,
+                    ),
+                  ],
+                )),
+    );
+  }
+}

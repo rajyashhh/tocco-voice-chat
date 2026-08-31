@@ -1,0 +1,63 @@
+group 'com.utd.video_effects'
+version '0.1.0'
+
+buildscript {
+    ext.kotlin_version = '1.8.22'
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    if (project.android.hasProperty("namespace")) {
+        namespace 'com.utd.video_effects'
+    }
+
+    compileSdk 36
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        minSdk 21
+    }
+
+    dependencies {
+        // org.webrtc.* (VideoFrame, JavaI420Buffer, …). MUST be the exact same
+        // coordinate+version flutter_webrtc 1.4.0 and livekit_client 2.8.0 pin,
+        // or a second org.webrtc class set crashes the JNI. (Mirrors livekit's
+        // android/build.gradle.)
+        implementation 'io.github.webrtc-sdk:android:144.7559.01'
+
+        // NOTE: com.cloudwebrtc.webrtc.* (FlutterWebRTCPlugin, video.LocalVideoTrack
+        // + its ExternalVideoFrameProcessing interface) is NOT declared here. Because
+        // this package's pubspec depends on flutter_webrtc, Flutter wires the
+        // :flutter_webrtc Gradle module onto our compile classpath automatically —
+        // exactly how livekit_client compiles against the same classes.
+    }
+}
