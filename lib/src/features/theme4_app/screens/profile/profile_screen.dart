@@ -11,37 +11,37 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const GradientBackground(
-      gradient: LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [
-          Color.fromRGBO(136, 35, 232, 0.5),
-          Color.fromRGBO(139, 48, 243, 0.5),
-          Color.fromRGBO(63, 60, 249, 0.5),
-          Color.fromRGBO(12, 96, 235, 0.5)
-        ],
-      ),
-      showBlobs: false,
-      child: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(8, 0, 8, 120),
-          child: Column(
-            children: [
-              _ProfileHeaderCard(),
-              SizedBox(height: 16),
-              _WalletDiamondRow(),
-              SizedBox(height: 16),
-              _VIPBanner(),
-              SizedBox(height: 16),
-              _QuickActionsRow(),
-              SizedBox(height: 16),
-              _SettingsList(),
-            ],
+    return Stack(
+      children: [
+        // Background image
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/me/bg.png',
+            fit: BoxFit.cover,
           ),
         ),
-      ),
+
+        // Your existing content
+        SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 120),
+            child: Column(
+              children: [
+                _ProfileHeaderCard(),
+                const SizedBox(height: 16),
+                _WalletDiamondRow(),
+                const SizedBox(height: 16),
+                _VIPBanner(),
+                const SizedBox(height: 16),
+                _QuickActionsRow(),
+                const SizedBox(height: 16),
+                _SettingsList(),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -165,7 +165,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                     onPressed: () {},
                   ),
                   IconButton(
-                    icon: const Icon(Icons.ios_share_rounded, size: 32, color: Colors.black54),
+                    icon: const Icon(Icons.edit_rounded, size: 32, color: Colors.black54),
                     onPressed: () {},
                   ),
                 ],
@@ -212,15 +212,15 @@ class _StatItem extends StatelessWidget {
           blendMode: BlendMode.srcIn,
           shaderCallback: (Rect bounds) {
             return const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment(-0.88, -0.48), // ~118.81 degrees
+              end: Alignment(0.88, 0.48),
               colors: [
-                Color(0xFFBB0DF5),
-                Color(0xFF250FE5),
+                Color(0xFFFE1515),
+                Color(0xFFFBCB07),
               ],
               stops: [
-                0.0, // -5.32% clamped to valid range
-                1.0, // 98.64% rounded to full gradient range
+                0.0, // Maps -22.58% (clamped to Flutter valid range 0.0 - 1.0)
+                0.6774, // Maps 67.74%
               ],
             ).createShader(bounds);
           },
@@ -260,56 +260,101 @@ class _WalletCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
-  const _WalletCard({required this.label, required this.value, required this.icon, required this.color});
+
+  const _WalletCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: color,
         borderRadius: BorderRadius.circular(16),
+        image: DecorationImage(
+          image: (label == 'Diamond')
+              ? const AssetImage('assets/images/me/diamond_bg.png')
+              : const AssetImage('assets/images/me/wallet_bg.png'),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(
+            color.withValues(alpha: 0.2),
+            BlendMode.darken,
+          ),
+        ),
       ),
-      child: Row(
+      child: Stack(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Left Watermark Image
+          Positioned(
+            right: -10,
+            top: -10,
+            bottom: -10,
+            child: Opacity(
+              opacity: 0.8, // Adjust opacity for watermark strength
+              child: Image.asset(
+                (label == 'Diamond')
+                    ? 'assets/images/me/diamond_mark.png' // Or your watermark asset path
+                    : 'assets/images/me/coin_mark.png',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+
+          // Main Content
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
               children: [
-                ShaderMask(
-                  blendMode: BlendMode.srcIn,
-                  shaderCallback: (Rect bounds) {
-                    return const LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        Color(0xFFF62121),
-                        Color(0xFFFA17DC),
-                        Color(0xFF2D03E6),
-                      ],
-                      stops: [
-                        0.0,    // -27.48% clamped to range
-                        0.2869, // 28.69%
-                        1.0,    // 109.71% clamped to range
-                      ],
-                    ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height));
-                  },
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShaderMask(
+                        blendMode: BlendMode.srcIn,
+                        shaderCallback: (Rect bounds) {
+                          return const LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Color(0xFFF62121),
+                              Color(0xFFFA17DC),
+                              Color(0xFF2D03E6),
+                            ],
+                            stops: [
+                              0.0,
+                              0.2869,
+                              1.0,
+                            ],
+                          ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height));
+                        },
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        value,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                Icon(icon, size: 32, color: Colors.orangeAccent),
+                const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
               ],
             ),
           ),
-          Icon(icon, size: 32, color: Colors.orangeAccent),
-          const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
         ],
       ),
     );
@@ -323,56 +368,76 @@ class _VIPBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      clipBehavior: Clip.hardEdge, // Clips any watermark overflow neatly inside the rounded corners
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFF0CA), Color(0xFFFFD1E8)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
         borderRadius: BorderRadius.circular(16),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/me/vip_banner.png'),
+          fit: BoxFit.cover,
+        ),
       ),
-      child: Row(
+      child: Stack(
         children: [
-          const Icon(Icons.workspace_premium_rounded, size: 40, color: Colors.purple),
-          const SizedBox(width: 16),
-          ShaderMask(
-            blendMode: BlendMode.srcIn,
-            shaderCallback: (Rect bounds) {
-              return const LinearGradient(
-                begin: Alignment(-1.0, -0.05), // ~93 degrees direction
-                end: Alignment(1.0, 0.05),
-                colors: [
-                  Color(0xFFEAAF0E),
-                  Color(0xFFF91013),
-                  Color(0xD62665EB), // rgba(38, 101, 235, 0.84) -> 84% opacity is 0xD6 alpha
-                  Color(0xFF0B16F6),
-                ],
-                stops: [
-                  0.1401, // 14.01%
-                  0.5248, // 52.48%
-                  0.8525, // 85.25%
-                  0.9297, // 92.97%
-                ],
-              ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height));
-            },
-            child: const Text(
-              'VIP / SVIP',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: Colors.white, // Changed to white for proper mask application
-              ),
+          // --- Watermark Element ---
+          Positioned(
+              right: -10,
+              bottom: -15,
+              child: Image.asset('assets/images/me/vip_mark.png', width: 100, height: 100)
+          ),
+
+          // --- Main Content ---
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.workspace_premium_rounded, size: 40, color: Colors.purple),
+                const SizedBox(width: 16),
+                ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: (Rect bounds) {
+                    return const LinearGradient(
+                      begin: Alignment(-1.0, -0.05),
+                      end: Alignment(1.0, 0.05),
+                      colors: [
+                        Color(0xFFEAAF0E),
+                        Color(0xFFF91013),
+                        Color(0xD62665EB),
+                        Color(0xFF0B16F6),
+                      ],
+                      stops: [
+                        0.1401,
+                        0.5248,
+                        0.8525,
+                        0.9297,
+                      ],
+                    ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height));
+                  },
+                  child: const Text(
+                    'VIP / SVIP',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black45,
+                          offset: Offset(0, 3),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Colors.grey),
+              ],
             ),
           ),
-          const Spacer(),
-          const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Colors.grey),
         ],
       ),
     );
   }
 }
-
 class _QuickActionsRow extends StatelessWidget {
   const _QuickActionsRow();
 
@@ -381,8 +446,11 @@ class _QuickActionsRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF0E0).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/me/vip_banner.png'), // Path to your background image
+          fit: BoxFit.cover,
+        ),
       ),
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -421,8 +489,15 @@ class _SettingsList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.fromRGBO(143, 103, 197, 0.3717),
+            Color.fromRGBO(254, 106, 136, 0.1888),
+          ],
+        ),
       ),
       child: Column(
         children: [
@@ -444,22 +519,47 @@ class _SettingTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
-  const _SettingTile({required this.icon, required this.label, required this.color});
+  final VoidCallback? onTap;
+
+  const _SettingTile({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
+    return Padding(
+      // Adjust edge values to fit your layout needs
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          tileColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8.0), // Adjust internal spacing
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          title: Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+          trailing: const Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 16,
+          ),
+          onTap: onTap ?? () {},
         ),
-        child: Icon(icon, color: color, size: 24),
       ),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
-      onTap: () {},
     );
   }
 }
