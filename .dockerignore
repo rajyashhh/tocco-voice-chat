@@ -3,7 +3,7 @@
 .github
 
 # Vendors (rebuilt inside container)
-vendor
+/vendor/
 
 # Dockerfiles
 Dockerfile*

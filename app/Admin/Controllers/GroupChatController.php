@@ -341,7 +341,7 @@ class GroupChatController extends MainController
         // Transform messages to include avatar URL and parent data
         $transformedMessages = $messages->getCollection()->map(function ($message) {
             $avatarPath = $message->user->profile->avatar ?? null;
-            $defaultAvatar = asset('images/default-avatar.png');
+            $defaultAvatar = asset('vendor/laravel-admin/AdminLTE/dist/img/default-avatar.svg');
             $avatarUrl = $avatarPath ? (getImagePath($avatarPath) ?? $defaultAvatar) : $defaultAvatar;
 
             // Parent message data
@@ -426,7 +426,7 @@ class GroupChatController extends MainController
         $message->load(['user.profile', 'parent.user']);
 
         $avatarPath = $message->user->profile->avatar ?? null;
-        $defaultAvatar = asset('images/default-avatar.png');
+        $defaultAvatar = asset('vendor/laravel-admin/AdminLTE/dist/img/default-avatar.svg');
         $avatarUrl = $avatarPath ? (getImagePath($avatarPath) ?? $defaultAvatar) : $defaultAvatar;
 
         // Parent message data

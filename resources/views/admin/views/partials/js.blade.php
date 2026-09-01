@@ -17,7 +17,9 @@
 
 <script>
     $(document).ready(function () {
-        $('.view-lang').click(function (e) {
+        // Delegated so the handler survives pjax navigation (this script is
+        // loaded once; direct bindings die when #pjax-container is replaced).
+        $(document).on('click', '.view-lang', function (e) {
             e.preventDefault();
 
             var lang = $(this).data('lang');

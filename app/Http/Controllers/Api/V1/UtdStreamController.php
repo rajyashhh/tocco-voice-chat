@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Helpers\Common;
 use App\Http\Controllers\Controller;
+use App\Services\AgoraTokenService;
 use App\Traits\HelperTraits\UtdStreamTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -44,43 +45,41 @@ class UtdStreamController extends Controller
         $identity = (string) $user->id;
         $name = $user->name ?? $user->uuid ?? $identity;
 
-        // Voice-engine credentials are per-install and empty until the operator
-        // fills them in. Say so explicitly here rather than letting the token
-        // request fail with a generic 500 the client shows as "something went
-        // wrong" — this is the exact point a fresh white-label breaks on room open.
-        $streamData = self::streamData();
-        if (empty($streamData['app_id']) || empty($streamData['server_secret'])) {
+        // ── Agora RTC token (local generation — Phase 1) ───────────────
+        // The Agora app_certificate must NEVER leave the server. We generate
+        // the RTC token locally with HMAC-SHA256 and hand only the opaque
+        // token + public app_id to the Flutter client.
+        $agora = new AgoraTokenService();
+
+        if (!$agora->isConfigured()) {
             return Common::apiResponse(
                 false,
-                'Voice engine is not configured yet. Set the UTD Stream credentials (App ID + Server Secret) in the admin settings before opening rooms.',
+                'Agora is not configured yet. Set AGORA_APP_ID and AGORA_APP_CERTIFICATE in the environment before opening rooms.',
                 null,
                 503
             );
         }
 
-        $extra = $request->only(['room_owner_id', 'seat_count', 'seat_mode', 'host_seat', 'mode_id', 'os', 'device_model', 'os_version', 'app_version']);
-        // The app's contract with US stays service rooms/streaming, but the
-        // production engine (new generation) mints by explicit `type` and
-        // deliberately rejects the legacy `service` field. Translate here —
-        // single seam — so the shipped app needs no change. `type` also
-        // replaces the old `kind: live` hint (legacy service/kind derivation
-        // defaulted kind to audio and broke PK battles with 422).
-        $extra['type'] = $request->service === 'streaming' ? 'live_stream' : 'audio_room';
-
-        $result = self::generateStreamToken(
-            $identity,
+        $result = $agora->generateRtcToken(
+            (int) $user->id,
             $request->room_name,
-            $name,
-            $request->role,
-            null,
-            $extra
+            $request->role
         );
 
         if (!$result) {
             return Common::apiResponse(false, 'Failed to generate token', null, 500);
         }
 
-        return Common::apiResponse(true, 'Success', $result);
+        // Flutter expects these fields in the data payload.  Keep the
+        // request contract (room_name, role, service, etc.) intact so the
+        // existing validation above still runs.  We also forward room_owner_id
+        // and other seat params as opaque data the client may read later.
+        $payload = array_merge($result, [
+            'app_id'       => config('agora.app_id'),
+            'channel_name' => $request->room_name,
+        ]);
+
+        return Common::apiResponse(true, 'Success', $payload);
     }
 
     // ─── Rooms ───────────────────────────────────────────────

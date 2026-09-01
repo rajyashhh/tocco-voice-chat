@@ -426,8 +426,15 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        // Nothing configured in DB -> keep the env-driven config as-is.
+        // Nothing configured in DB -> check env fallback.
         if ($keyFileArray === null && empty($bucket) && empty($projectId)) {
+            // If env also has no GCS credentials, fall back to local storage
+            // so uploads don't fail silently.
+            $envKeyFile = env('GOOGLE_CLOUD_KEY_FILE');
+            $envBucket = env('GOOGLE_CLOUD_STORAGE_BUCKET');
+            if (empty($envKeyFile) && empty($envBucket)) {
+                $this->fallbackToLocalDisks();
+            }
             return;
         }
 
@@ -450,6 +457,32 @@ class AppServiceProvider extends ServiceProvider
             if (!empty($bucket)) {
                 config(["filesystems.disks.{$name}.bucket" => $bucket]);
                 config(["filesystems.disks.{$name}.url" => 'https://storage.googleapis.com/' . $bucket]);
+            }
+        }
+    }
+
+    /**
+     * When no GCS credentials exist anywhere (DB or env), switch every GCS
+     * disk to the `local` driver so admin uploads keep working. The files
+     * land in storage/app/public/{disk} and are served via the public
+     * symlink.
+     */
+    protected function fallbackToLocalDisks(): void
+    {
+        foreach ((array) config('filesystems.disks', []) as $name => $diskConfig) {
+            if (($diskConfig['driver'] ?? null) !== 'gcs') {
+                continue;
+            }
+
+            config(["filesystems.disks.{$name}.driver" => 'local']);
+            config(["filesystems.disks.{$name}.root"   => storage_path("app/public/{$name}")]);
+            config(["filesystems.disks.{$name}.url"    => env('APP_URL', '/') . "/storage/{$name}"]);
+            config(["filesystems.disks.{$name}.visibility" => 'public']);
+
+            // Create the directory so Storage::put() doesn't fail.
+            $dir = storage_path("app/public/{$name}");
+            if (!is_dir($dir)) {
+                mkdir($dir, 0775, true);
             }
         }
     }

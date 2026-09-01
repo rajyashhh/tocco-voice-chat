@@ -299,8 +299,9 @@ function loadWalletLogs() {
                             <td>
                                 <a href="/${routePrefix}/users/${log.user_id}"
                                 style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
-                                    <img src="${log.img}" alt="${log.user_name}"
-                                        style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                    <img src="${log.img || '/vendor/laravel-admin/AdminLTE/dist/img/default-avatar.svg'}" alt="${log.user_name}"
+                                        style="width:40px; height:40px; border-radius:50%; object-fit:cover;"
+                                        onerror="this.onerror=null; this.src='/vendor/laravel-admin/AdminLTE/dist/img/default-avatar.svg'">
                                     <div>
                                         <div style="font-weight:600;">${log.user_name}</div>
                                         <div style="font-size:12px; color:#666;">${log.user_uuid}</div>
@@ -437,7 +438,7 @@ async function loadFinanceTables() {
                     <td>
                         <a href="/${routePrefix}/users/${w.user_id}" target="_blank"
                         style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
-                            <img src="${w.img || '/images/default-avatar.png'}" alt="${w.user_name}"
+                            <img src="${w.img || '/vendor/laravel-admin/AdminLTE/dist/img/default-avatar.svg'}" alt="${w.user_name}"
                                 style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                             <div>
                                 <div style="font-weight:600;">${w.user_name}</div>
@@ -472,7 +473,7 @@ async function loadFinanceTables() {
                 ${topRow.map(u => `
                     <a href="/${routePrefix}/users/${u.id}">
                         <div class="user-card">
-                            <img src="${u.avatar}" alt="${u.name}" onerror="this.src='/images/default-avatar.png'">
+                            <img src="${u.avatar}" alt="${u.name}" onerror="this.onerror=null; this.src='/vendor/laravel-admin/AdminLTE/dist/img/default-avatar.svg'">
                             <div class="user-name">${u.name}</div>
                             <div class="user-name">${u.uuid}</div>
                         </div>
@@ -483,7 +484,7 @@ async function loadFinanceTables() {
                 ${bottomRow.map(u => `
                     <a href="/admin/users/${u.id}" style="text-decoration: none; color: inherit; flex: 0 0 calc(${100 / bottomRow.length}% - 10px);">
                         <div class="user-card">
-                            <img src="${u.avatar}" alt="${u.name}" onerror="this.src='/images/default-avatar.png'">
+                            <img src="${u.avatar}" alt="${u.name}" onerror="this.onerror=null; this.src='/vendor/laravel-admin/AdminLTE/dist/img/default-avatar.svg'">
                             <div class="user-name">${u.name}</div>
                             <div class="user-name">${u.uuid}</div>
                         </div>

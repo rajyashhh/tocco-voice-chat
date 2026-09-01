@@ -56,6 +56,19 @@ class AdminRbacGuard
         'set-preview-area-manager', 'unset-preview-area-manager',
     ];
 
+    /** Routes that bypass per-route permission check (must work without any permission). */
+    private const PERMISSION_EXEMPT_PREFIXES = [
+        'auth/logout', 'logout', 'locale', 'save-fcm-token',
+        'set-preview-area-manager', 'unset-preview-area-manager',
+        'auth/login', 'login', 'dashboard',
+        'api/search', 'api/config',
+        'profile',
+        // laravel-admin flat grid-action endpoint: the resource context is in
+        // POST params (_model, _action, _row_id), not the URL path. Grid actions
+        // carry their own Permission::check() inside each Action class.
+        '_handle_action_',
+    ];
+
     /** Markers of state-mutating GET routes (blocked for view-only actors). */
     private const GET_MUTATION_MARKERS = ['/accept', '/reject', 'convert-is_gold', 'background-count', 'targets-confirm'];
 
@@ -108,6 +121,15 @@ class AdminRbacGuard
             if ($request->isMethod('get') && $this->isGetMutation($path)) {
                 abort(403, __('Read-only access.'));
             }
+        }
+
+        // 4) Per-route permission enforcement.
+        //    A non-super user may only reach a route when at least one of their
+        //    permissions has an http_path that matches the current request path
+        //    (and the http_method allows the current verb, or is empty = ANY).
+        //    This closes the gap where controllers omit Permission::check().
+        if (! $this->isPermissionExempt($path)) {
+            $this->enforceRoutePermission($user, $request, $path);
         }
 
         return $next($request);
@@ -235,5 +257,148 @@ class AdminRbacGuard
         }
 
         return $path;
+    }
+
+    /** True when $path starts with any exempt prefix. */
+    private function isPermissionExempt(string $path): bool
+    {
+        foreach (self::PERMISSION_EXEMPT_PREFIXES as $prefix) {
+            if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Enforce per-route permission by looking up the admin_menu table.
+     *
+     * The admin_menu table is the authoritative URI→permission mapping.
+     * Controllers use $this->permission_name which is decoupled from the
+     * URL path (e.g. VipController serves /vips but checks 'browse-level'),
+     * so slug derivation from URLs is unreliable.
+     *
+     * Strategy:
+     *  1. Strip numeric IDs and action segments from the path to get the base URI.
+     *  2. Look up admin_menu for matching URI (longest-first).
+     *  3. If a matching menu item has a permission set, check user holds it.
+     *  4. If the menu item has no permission (NULL), allow through — these are
+     *     unrestricted menu items; the controller's own Permission::check() handles.
+     *  5. If no menu item matches (custom/non-menu route), allow — the controller's
+     *     own Permission::check() handles enforcement.
+     */
+    private function enforceRoutePermission($user, Request $request, string $path): void
+    {
+        $slugs = $user->allPermissions()->pluck('slug')->filter();
+
+        if ($slugs->isEmpty()) {
+            abort(403, __('You do not have permission to access this page.'));
+        }
+
+        // Wildcard: full access.
+        if ($slugs->contains('*')) {
+            return;
+        }
+
+        // Look up the admin_menu table for the base URI of this path.
+        $menuPermission = $this->lookupMenuPermission($path);
+
+        if ($menuPermission === null) {
+            // No matching menu item — this is a non-menu route (e.g. custom
+            // controller action, module route, AJAX endpoint). The controller's
+            // own Permission::check() handles access. Allow through.
+            return;
+        }
+
+        if ($menuPermission === '') {
+            // Menu item exists but has no permission set (NULL in DB). These are
+            // unrestricted menu items — the controller's own Permission::check()
+            // handles fine-grained access. Allow through.
+            return;
+        }
+
+        // Check if the user holds the required permission.
+        if ($slugs->contains($menuPermission)) {
+            return;
+        }
+
+        abort(403, __('You do not have permission to access this page.'));
+    }
+
+    /**
+     * Look up the admin_menu table to find the permission for a given URL path.
+     *
+     * Strips numeric IDs and action segments (create/edit) to find the
+     * base resource URI, then matches against admin_menu.uri (longest-first).
+     *
+     * Returns:
+     *  - the permission slug string if a menu item with a permission was found
+     *  - '' (empty string) if a menu item was found but has no permission (NULL)
+     *  - null if no menu item matches (non-menu route)
+     */
+    private function lookupMenuPermission(string $path): ?string
+    {
+        $segments = array_values(array_filter(explode('/', $path)));
+
+        if (empty($segments)) {
+            return null;
+        }
+
+        // Build candidate URIs by progressively removing trailing segments.
+        // Start with the full path, then remove non-numeric trailing segments
+        // (IDs, action words) to find the base resource URI.
+        //
+        // Example: 'users/123/edit' → candidates: ['users/123/edit', 'users/123', 'users']
+        //          'auth/users'     → candidates: ['auth/users']
+        //          'users'          → candidates: ['users']
+        $candidates = [];
+        for ($i = count($segments); $i >= 1; $i--) {
+            $uri = implode('/', array_slice($segments, 0, $i));
+            // Skip candidates where the last segment is purely numeric (an ID).
+            if (ctype_digit(end(array_slice($segments, 0, $i)))) {
+                continue;
+            }
+            $candidates[] = $uri;
+        }
+
+        // Deduplicate while preserving order (longest first).
+        $candidates = array_unique($candidates);
+
+        // Query admin_menu: match on URI, prefer exact matches.
+        // Use a single query with IN clause for efficiency.
+        if (empty($candidates)) {
+            return null;
+        }
+
+        $menuItems = \Illuminate\Support\Facades\DB::table('admin_menu')
+            ->whereIn('uri', $candidates)
+            ->select('uri', 'permission')
+            ->get();
+
+        if ($menuItems->isEmpty()) {
+            return null;
+        }
+
+        // Find the best match: prefer the longest URI (most specific).
+        // When multiple items share the same URI, prefer the one WITH a
+        // permission set (explicit gate) over NULL-permission items.
+        $bestMatch = null;
+        $bestLength = 0;
+        $bestHasPerm = false;
+        foreach ($menuItems as $item) {
+            $itemLen = strlen((string) $item->uri);
+            $hasPerm = !empty($item->permission);
+            $currentBestHasPerm = $bestMatch && !empty($bestMatch->permission);
+
+            if ($itemLen > $bestLength
+                || ($itemLen === $bestLength && $hasPerm && !$currentBestHasPerm)
+            ) {
+                $bestLength = $itemLen;
+                $bestMatch = $item;
+                $bestHasPerm = $hasPerm;
+            }
+        }
+
+        return $bestMatch->permission ?? '';
     }
 }

@@ -1,5 +1,10 @@
 $(document).ready(function () {
-    $('.view-description').click(function (e) {
+    // Delegated (not direct) so the bindings survive pjax navigation: pjax
+    // replaces #pjax-container and never re-runs this already-loaded script,
+    // so a direct $('.view-description').click() binding dies after the first
+    // page transition and the <a href="#"> falls back to native navigation,
+    // leaving the URL with a trailing "#".
+    $(document).on('click', '.view-description', function (e) {
         e.preventDefault();
 
         var description = $(this).data('description');
@@ -10,7 +15,7 @@ $(document).ready(function () {
         $('#descriptionModal').modal('show');
     });
 
-    $('.view-image').click(function (e) {
+    $(document).on('click', '.view-image', function (e) {
         e.preventDefault();
         var imgSrc = $(this).data('img');
         $('#modalImageContent').attr('src', imgSrc);
@@ -22,6 +27,55 @@ $(document).ready(function () {
            $('html, body').animate({ scrollTop: 300 }, 300);
        }, 200);
     });
+});
+
+// ── Global navigation hardening ───────────────────────────────────────────
+// 1) An <a href="#"> must never actually navigate: that is what leaves the
+//    URL ending in "#". pjax deliberately ignores hash-only links (so it does
+//    NOT preventDefault them) and every handler that did preventDefault is
+//    either direct-bound (dead after pjax) or plugin-bound (AdminLTE/Bootstrap
+//    — gone when their document.ready init is skipped). This capture-phase
+//    guard covers every such anchor no matter which handler is missing. It
+//    only targets the literal href="#" (tab links like href="#tab1" are
+//    intentional fragment navigation and are left alone).
+document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href="#"]') : null;
+    if (a && !e.defaultPrevented) {
+        e.preventDefault();
+    }
+}, true);
+
+// 2) Pjax overlay cleanup: the footer modals live OUTSIDE #pjax-container, so
+//    when a modal is open during a pjax navigation its full-screen
+//    .modal-backdrop and body.modal-open survive on the new page and swallow
+//    every click ("sidebar stops responding until refresh"). Close modals and
+//    drop stray backdrops/popovers/tooltips at the START of every pjax
+//    navigation so the next page is always interactive.
+//
+// 3) Hash cleanup: the dashboard tab code calls history.pushState(null, null,
+//    '#game') etc.  If the user then navigates away via pjax, the hash stays
+//    in the URL.  The next page's pjax:complete would re-render, but a stale
+//    hash like #game can confuse the AdminLTE active-menu matcher
+//    (location.pathname + location.hash) and – on some browsers – prevent
+//    sidebar link clicks from reaching the pjax handler.  Strip the hash at
+//    the start of every pjax navigation.
+$(document).on('pjax:start', function () {
+    // Strip stale fragment identifiers so the URL is clean for the new page.
+    if (window.location.hash) {
+        history.replaceState(history.state, '', window.location.pathname + window.location.search);
+    }
+
+    // Close any open modals / backdrops that would swallow clicks.
+    try {
+        $('.modal.in, .modal.show').each(function () {
+            if ($.fn.modal) {
+                $(this).modal('hide');
+            }
+        });
+    } catch (_e) { /* $.fn.modal may be unavailable if a duplicate jQuery was loaded */ }
+    $('.modal-backdrop').remove();
+    $('body').removeClass('modal-open');
+    $('.crs-popover, .crs-tooltip').remove();
 });
 
 $(document).on('ajaxComplete', function (event, xhr, settings) {
@@ -38,21 +92,22 @@ $(document).on('ajaxComplete', function (event, xhr, settings) {
 
 
 
-document.addEventListener('DOMContentLoaded', function () {
+// Delegated: these row-action buttons live inside #pjax-container, so a direct
+// binding (querySelectorAll + addEventListener on DOMContentLoaded) dies after
+// the first pjax navigation and the buttons silently stop working.
+function sendRequest(url) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': LA.token,
+            'Accept': 'application/json',
+        },
+    }).then(res => res.json());
+}
 
-    function sendRequest(url) {
-        return fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': LA.token,
-                'Accept': 'application/json',
-            },
-        }).then(res => res.json());
-    }
-
-    function handleAction(button, actionType) {
-        button.addEventListener('click', function(e){
-            e.preventDefault();
+function handleAction(button, actionType, e) {
+    if (e) {
+        e.preventDefault();
 
             // رسائل متعددة اللغات
             const messages = {
@@ -113,12 +168,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
             });
-        });
     }
+}
 
-    document.querySelectorAll('.approve-btn').forEach(btn => handleAction(btn, 'approve'));
-    document.querySelectorAll('.reject-btn').forEach(btn => handleAction(btn, 'reject'));
-});
+$(document).on('click', '.approve-btn', function (e) { handleAction(this, 'approve', e); });
+$(document).on('click', '.reject-btn', function (e) { handleAction(this, 'reject', e); });
 
 
 
@@ -131,9 +185,10 @@ function loadScriptsSequentially(scripts, callback = () => {}) {
     $.getScript(first)
         .done(() => loadScriptsSequentially(rest, callback))
         .fail((xhr, status, error) => {
-
+            // Log only — never reload the page on a CDN failure: these map libs
+            // are loaded on EVERY admin page, so a reload here turns a blocked
+            // CDN into an infinite reload loop for the whole panel.
             console.error('[Map Error] فشل تحميل:', first, error);
-            window.location.reload();
         });
 }
 

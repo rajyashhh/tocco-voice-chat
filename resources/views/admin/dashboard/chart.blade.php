@@ -961,7 +961,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{{-- jQuery is already loaded globally by Admin::jQuery() in the layout. Loading a
+     second copy here overwrites window.jQuery, which breaks $.fn.modal (registered
+     by Bootstrap 3 on the original instance).  PJAX's pjax:start handler relies on
+     $.fn.modal to hide open modals before navigation; when it is unavailable the
+     modal backdrop survives and blocks every click on the page.  — removed 2026-08-21 --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>

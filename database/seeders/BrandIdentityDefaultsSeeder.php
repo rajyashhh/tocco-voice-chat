@@ -38,8 +38,10 @@ class BrandIdentityDefaultsSeeder extends Seeder
     {
         $defaults = [
             // ── Identity (name / title) ──────────────────────────────────────
-            'app_title_en' => 'Meow Live',
-            'app_title_ar' => 'ميو لايف',
+            // Current brand (owner 2026): Tocco Voice. firstOrCreate means this
+            // only seeds FRESH installs — existing panels keep their panel-set title.
+            'app_title_en' => 'Tocco Voice',
+            'app_title_ar' => 'توكو فويس',
 
             // ── App colour tokens (panel + API, must match COLOR_DEFAULTS) ────
             'app_primary_color'    => '#F0D060',

@@ -72,7 +72,11 @@
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
         ],
+        "post-install-cmd": [
+            "@php scripts/patch-nwidart-helpers.php"
+        ],
         "post-update-cmd": [
+            "@php scripts/patch-nwidart-helpers.php",
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
         "pre-autoload-dump": "Google\\Task\\Composer::cleanup",

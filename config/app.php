@@ -203,8 +203,10 @@ return [
         App\Bd\BdServiceProvider::class,
         App\ShippingAdmin\ShippingAdminServiceProvider::class,
         App\Providers\TimeServiceProvider::class,
-        Modules\Region\Providers\AreaManagerServiceProvider::class,
-        Modules\Country\Providers\SuperAdminServiceProvider::class,
+        // Region and Country module providers are auto-registered by
+        // nwidart/laravel-modules via bootstrap/cache/*_module.php.
+        // Manual registration here caused them to boot BEFORE the module
+        // manager was available, crashing module_path() calls.
         Illuminate\Foundation\Providers\ArtisanServiceProvider::class,
 
 
