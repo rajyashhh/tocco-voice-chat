@@ -359,7 +359,6 @@ flutter:
     - assets/icons/ui_icons/
     - assets/lottie/
     - assets/sounds/
-    - assets/images/
     - assets/images/login/
     - assets/images/home/
     - assets/images/room/

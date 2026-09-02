@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
               top: false,
               bottom: false,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 170, 16, 110), // Padding to start below the sticky banner
+                padding: const EdgeInsets.fromLTRB(16, 86, 16, 110), // Padding to start below the sticky banner
                 children: [
                   const _BannerPlaceholder(),
                   const SizedBox(height: 12),
@@ -83,8 +83,9 @@ class _RoomTopBar extends StatelessWidget {
         Image.asset(
           'assets/images/room/room_upper_banner.webp',
           width: double.infinity,
-          height: 160,
-          fit: BoxFit.fill,
+          height: 100,
+          fit: BoxFit.cover,
+          alignment: Alignment.bottomCenter,
         ),
         SafeArea(
           bottom: false,

@@ -127,7 +127,6 @@ class _ProfileHeaderCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _LevelBadge(label: 'LV.4', color: Colors.purple.shade300),
-                    const SizedBox(width: 8),
                     _LevelBadge(label: 'LV.8', color: Colors.orange.shade400),
                   ],
                 ),
@@ -187,14 +186,8 @@ class _LevelBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
-      ),
+      child: (label == 'LV.4') ? Image.asset('assets/images/me/level_4.png', width: 50,) :
+      Image.asset('assets/images/me/level_8.png', width: 50,),
     );
   }
 }
@@ -350,7 +343,7 @@ class _WalletCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(icon, size: 32, color: Colors.orangeAccent),
+                (label == 'Diamond') ? Image.asset('assets/images/me/diamond.png', width: 53,) : Image.asset('assets/images/me/wallet.png', width: 83,),
                 const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
               ],
             ),
@@ -387,10 +380,10 @@ class _VIPBanner extends StatelessWidget {
 
           // --- Main Content ---
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
-                const Icon(Icons.workspace_premium_rounded, size: 40, color: Colors.purple),
+                Image.asset('assets/images/me/vip_diamond.png', width: 80,),
                 const SizedBox(width: 16),
                 ShaderMask(
                   blendMode: BlendMode.srcIn,
@@ -455,10 +448,10 @@ class _QuickActionsRow extends StatelessWidget {
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _QuickActionItem(icon: Icons.assignment_rounded, label: 'Task'),
-          _QuickActionItem(icon: Icons.storefront_rounded, label: 'Store'),
-          _QuickActionItem(icon: Icons.backpack_rounded, label: 'Backpack'),
-          _QuickActionItem(icon: Icons.military_tech_rounded, label: 'My level'),
+          _QuickActionItem(image: 'assets/images/me/task.png', label: 'Task'),
+          _QuickActionItem(image: 'assets/images/me/store.png', label: 'Store'),
+          _QuickActionItem(image: 'assets/images/me/bag.png', label: 'Backpack'),
+          _QuickActionItem(image: 'assets/images/me/level.png', label: 'My level'),
         ],
       ),
     );
@@ -466,15 +459,15 @@ class _QuickActionsRow extends StatelessWidget {
 }
 
 class _QuickActionItem extends StatelessWidget {
-  final IconData icon;
+  final String image;
   final String label;
-  const _QuickActionItem({required this.icon, required this.label});
+  const _QuickActionItem({required this.image, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, size: 32, color: Colors.orange),
+        Image.asset(image, width: 45,),
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
       ],
@@ -501,14 +494,14 @@ class _SettingsList extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _SettingTile(icon: Icons.favorite_rounded, label: 'CP Center', color: Colors.red.shade300),
-          _SettingTile(icon: Icons.people_rounded, label: 'Agency Center', color: Colors.blue.shade300),
-          _SettingTile(icon: Icons.headset_mic_rounded, label: 'Host Center', color: Colors.purple.shade300),
-          _SettingTile(icon: Icons.support_agent_rounded, label: 'Customer support', color: Colors.orange.shade300),
-          _SettingTile(icon: Icons.verified_user_rounded, label: 'Verify', color: Colors.teal.shade300),
-          _SettingTile(icon: Icons.family_restroom_rounded, label: 'Family', color: Colors.pink.shade300),
-          _SettingTile(icon: Icons.person_add_rounded, label: 'Invite friends', color: Colors.indigo.shade300),
-          _SettingTile(icon: Icons.settings_rounded, label: 'Setting', color: Colors.blueGrey.shade300),
+          _SettingTile(image: 'assets/images/me/cp_center.png', label: 'CP Center', color: Colors.red.shade300),
+          _SettingTile(image: 'assets/images/me/agency_center.png', label: 'Agency Center', color: Colors.blue.shade300),
+          _SettingTile(image: 'assets/images/me/host_center.png', label: 'Host Center', color: Colors.purple.shade300),
+          _SettingTile(image: 'assets/images/me/customer_support.png', label: 'Customer support', color: Colors.orange.shade300),
+          _SettingTile(image: 'assets/images/me/verify.png', label: 'Verify', color: Colors.teal.shade300),
+          _SettingTile(image: 'assets/images/me/family.png', label: 'Family', color: Colors.pink.shade300),
+          _SettingTile(image: 'assets/images/me/invite_friends.png', label: 'Invite friends', color: Colors.indigo.shade300),
+          _SettingTile(image: 'assets/images/me/settings.png', label: 'Setting', color: Colors.blueGrey.shade300),
         ],
       ),
     );
@@ -516,13 +509,13 @@ class _SettingsList extends StatelessWidget {
 }
 
 class _SettingTile extends StatelessWidget {
-  final IconData icon;
+  final String image;
   final String label;
   final Color color;
   final VoidCallback? onTap;
 
   const _SettingTile({
-    required this.icon,
+    required this.image,
     required this.label,
     required this.color,
     this.onTap,
@@ -539,12 +532,7 @@ class _SettingTile extends StatelessWidget {
           tileColor: Colors.transparent,
           contentPadding: const EdgeInsets.symmetric(horizontal: 8.0), // Adjust internal spacing
           leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
+            child: Image.asset(image, width: 40,),
           ),
           title: Text(
             label,

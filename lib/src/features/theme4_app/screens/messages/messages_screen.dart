@@ -103,7 +103,7 @@ class _MessagesContent extends StatelessWidget {
                 bottom: 0,
                 width: 210,
                 child: const _NotificationCard(
-                  label: 'Global group chat',
+                  label: 'Group chat',
                   icon: Icons.campaign_rounded,
                   bgAsset: 'assets/images/messages/banner_right.webp',
                   icon_asset: 'assets/images/messages/global_notification.webp',

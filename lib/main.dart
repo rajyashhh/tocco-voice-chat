@@ -3,6 +3,7 @@ import 'package:general/src/core/index.dart';
 import 'package:general/src/features/auth/auth.dart';
 
 import 'package:flutter/material.dart';
+import 'package:general/src/features/theme4_app/screens/moment/main_moment_screen.dart';
 
 import 'src/features/theme4_app/app/constants.dart';
 import 'src/features/theme4_app/app/theme.dart';
@@ -501,7 +502,7 @@ class _MainShellState extends State<MainShell> {
   // Built once and preserved by IndexedStack.
   final List<Widget> _tabs = const [
     HomeScreen(),
-    MomentScreen(),
+    MainMomentScreen(),
     // RoomScreen(),
     MessagesScreen(),
     ProfileScreen(),
