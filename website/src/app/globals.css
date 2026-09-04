@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand colors — Tocco Voice Live */
+  --color-brand: #9174D5;
+  --color-brand-hover: #7b5fc4;
+  --color-brand-light: #f5f1fc;
+  --color-brand-muted: #e8e0f7;
+
+  /* Surfaces */
+  --color-surface: #ffffff;
+  --color-surface-dim: #fafafe;
+  --color-surface-bg: #f8f7fc;
+
+  /* Text */
+  --color-text: #1a1a2e;
+  --color-text-secondary: #555566;
+  --color-text-muted: #8888a0;
+
+  /* Borders */
+  --color-border: #e5e5ef;
+  --color-border-light: #f0f0f5;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scroll offset for fixed navbar — allows anchor links to clear the 72px header */
+section[id] {
+  scroll-margin-top: 80px;
+}
+
+/* Selection colors */
+::selection {
+  background-color: rgba(145, 116, 213, 0.15);
+  color: #1a1a2e;
+}
+
+/* Focus visible */
+*:focus-visible {
+  outline: 2px solid #9174D5;
+  outline-offset: 2px;
+}
+
+/* Smooth image loading */
+img {
+  transition: opacity 0.3s ease;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Tocco Voice Live",
+  "short_name": "Tocco Voice Live",
+  "description": "Go live, connect with people worldwide through live streaming, real-time chat, and translation.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#9174D5",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/branding/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/branding/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
