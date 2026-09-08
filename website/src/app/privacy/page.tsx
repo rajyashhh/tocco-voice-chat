@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
         >
           &larr; Back to website
         </a>
-        
+
         <div className="bg-white rounded-3xl border border-border-light shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-8 sm:p-10 md:p-12">
           <h1 className="text-[2rem] sm:text-[2.5rem] font-bold text-text mb-4 tracking-tight">Tocco Voice Chat Privacy Policy</h1>
           <p className="text-slate-500 font-semibold mb-8">Last Updated: September 2026</p>
@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
             <p>At Tocco Voice Chat (&quot;Tocco&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), we respect your privacy and are committed to protecting the personal information of our users. This Privacy Policy explains how we collect, use, disclose, store, and protect information when you use the Tocco Voice Chat mobile application, website, and related services (collectively, the &quot;Services&quot;).</p>
             <p>Tocco is a social voice communication platform that allows users to participate in voice chat rooms, communicate privately with other users, discover and connect with people, participate in interactive entertainment features, and use other community and communication features.</p>
             <p>By accessing or using the Services, you acknowledge that you have read and understood this Privacy Policy.</p>
-            
+
             <h2 className="text-[1.5rem] font-bold text-text mt-10 mb-4">Contents</h2>
             <ul className="list-disc pl-5 space-y-2 mb-8">
               <li>What Information We Collect</li>
@@ -451,8 +451,8 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-[1.5rem] font-bold text-text mt-10 mb-4">16. Contact Us</h2>
             <p>If you have questions, concerns, privacy requests, or complaints regarding this Privacy Policy or Tocco&apos;s handling of personal information, please contact us:</p>
             <p><strong>Tocco Voice Chat</strong></p>
-            <p><strong>Email:</strong> [YOUR PRIVACY/ SUPPORT EMAIL]</p>
-            <p><strong>Website:</strong> [YOUR OFFICIAL WEBSITE]</p>
+            <p><strong>Email:</strong> [toccovoicechat@gmail.com]</p>
+            <p><strong>Website:</strong> [toccovoice.com]</p>
             <p>For account deletion requests, privacy requests, or questions regarding your personal information, please include sufficient information for us to identify your account and process your request securely.</p>
 
             <hr className="my-8 border-border-light" />
