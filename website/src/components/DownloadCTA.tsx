@@ -25,7 +25,7 @@ export default function DownloadCTA() {
               {[
                 { label: 'App Store', icon: '🍎', href: '#', comingSoon: true },
                 { label: 'Google Play', icon: '▶️', href: '#', comingSoon: true },
-                { label: 'Android APK', icon: '🤖', href: '/tocco-voice.apk', download: true },
+                { label: 'Android APK', icon: '🤖', href: 'https://github.com/rajyashhh/tocco-voice-chat/releases/download/Application/app-release.apk', download: true },
               ].map((store) => (
                 <a
                   key={store.label}
