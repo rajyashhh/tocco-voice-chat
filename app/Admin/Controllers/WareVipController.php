@@ -253,7 +253,11 @@ class WareVipController extends MainController
         );
         $form->text('key', trans('key'));
         $form->image('show_img', trans('img'))->name(function ($file) {
-            return now()->timestamp . rand(0, 999) . '.' . $file->guessExtension();
+            $extension = $file->getClientOriginalExtension();
+            if (empty($extension)) {
+                $extension = $file->guessExtension();
+            }
+            return now()->timestamp . rand(0, 999) . '.' . $extension;
         })->default('1.png');
         $form->switch('half_image_profile', trans('half image'))->states(Common::getSwitchStates());
         //        $form->image('img1', trans('img'));
@@ -270,15 +274,19 @@ class WareVipController extends MainController
                 $prefix = 't-';
             }
 
+            $ext = $file->getClientOriginalExtension();
+            if (empty($ext)) {
+                $ext = $file->guessExtension();
+            }
             if ($type == 4) { // For "Avatar Frame"
-                return $prefix . 'w-f' . $wareId . '.' . $file->guessExtension();
+                return $prefix . 'w-f' . $wareId . '.' . $ext;
             } elseif ($type == 5) { // For "Bubble Frame"
-                return $prefix . 'w-b' . $wareId . '.' . $file->guessExtension();
+                return $prefix . 'w-b' . $wareId . '.' . $ext;
             } elseif ($type == 10) { // For "Bubble Frame"
-                return $prefix . 'w-vb' . $wareId . '.' . $file->guessExtension();
+                return $prefix . 'w-vb' . $wareId . '.' . $ext;
             } else {
                 // Default fallback naming (optional)
-                return $prefix . 'w-default' . $wareId . '.' . $file->guessExtension();
+                return $prefix . 'w-default' . $wareId . '.' . $ext;
             }
         });
         $form->select('image_type', __('image_type'))->options(

@@ -228,9 +228,10 @@ class RoleControllerNew extends MainController
             // Default to empty string if not found (avoids SQL issues)
             $type = $type ?? '';
             return [
-                "required|unique:admin_roles,name," . ($id ?? 'NULL') . ",id,type," . $type,
+                'required',
+                'unique:admin_roles,name,' . ($id ?? 'NULL') . ',id,type,' . $type,
                 function ($attribute, $value, $fail) {
-                    if (in_array(Str::slug($value), self::PORTAL_ROLE_SLUGS, true)) {
+                    if (in_array(Str::slug($value), \App\Admin\Controllers\RoleControllerNew::PORTAL_ROLE_SLUGS, true)) {
                         $fail(__('This role name is reserved for position system roles'));
                     }
                 },

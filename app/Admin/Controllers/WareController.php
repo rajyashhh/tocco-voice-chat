@@ -361,7 +361,11 @@ class WareController extends MainController
         // $form->switch('is_active_for_vip', __("active vip"))->states($states);
         // $form->number('exp', __('exp'));
         $form->image('show_img', trans('img'))->name(function ($file) {
-            return now()->timestamp . rand(0, 999) . '.' . $file->guessExtension();
+            $extension = $file->getClientOriginalExtension();
+            if (empty($extension)) {
+                $extension = $file->guessExtension();
+            }
+            return now()->timestamp . rand(0, 999) . '.' . $extension;
         })->default('1.png');
         // $form->switch('half_image_profile', trans('half image'))->states(Common::getSwitchStates());
         //        $form->image('img1', trans('img'));

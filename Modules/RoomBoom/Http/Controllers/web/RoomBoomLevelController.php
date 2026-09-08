@@ -123,7 +123,11 @@ class RoomBoomLevelController extends MainController
         $form->number('target', __('target'))->required()
             ->help(__('The full target that must be achieved to complete the Room Boom at this level.'));
         $form->file('video', trans('video'))->name(function ($file) {
-            return now()->timestamp . rand(0, 999) . '.' . $file->guessExtension();
+            $extension = $file->getClientOriginalExtension();
+            if (empty($extension)) {
+                $extension = $file->guessExtension();
+            }
+            return now()->timestamp . rand(0, 999) . '.' . $extension;
         })->default('1.png')
             ->help(__('The special video for this level, displayed after completion. Each level has its own unique video.'));
         $form->select('image_type', __('image_type'))->options(

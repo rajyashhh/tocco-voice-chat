@@ -66,11 +66,8 @@ return [
             //            'path' => 'storage/app/public',
             'url' => 'https://storage.googleapis.com/'.env('GOOGLE_CLOUD_STORAGE_BUCKET'),
             'path_prefix' => '', // optional: /default/path/to/apply/in/bucket
-            //            'storage_api_uri' => env('GOOGLE_CLOUD_STORAGE_API_URI', null), // see: Public URLs below
-            //            'apiEndpoint' => env('GOOGLE_CLOUD_STORAGE_API_ENDPOINT', null), // set storageClient apiEndpoint
-            //            'visibility' => 'public', // optional: public|private
-            //            'visibility_handler' => null, // optional: set to \League\Flysystem\GoogleCloudStorage\UniformBucketLevelAccessVisibility::class to enable uniform bucket level access
-            //            'metadata' => ['cacheControl'=> 'public,max-age=86400'], // optional: default metadata
+            'visibility_handler' => \League\Flysystem\GoogleCloudStorage\UniformBucketLevelAccessVisibility::class,
+            'metadata' => ['cacheControl' => 'public,max-age=86400'],
         ],
 
 

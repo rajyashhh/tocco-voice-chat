@@ -284,8 +284,8 @@ class AdminRbacGuard
      *  3. If a matching menu item has a permission set, check user holds it.
      *  4. If the menu item has no permission (NULL), allow through — these are
      *     unrestricted menu items; the controller's own Permission::check() handles.
-     *  5. If no menu item matches (custom/non-menu route), allow — the controller's
-     *     own Permission::check() handles enforcement.
+     *  5. If no menu item matches (non-menu route), fall back to 'browse-dashboard'
+     *     so the route is gated rather than passing through completely unguarded.
      */
     private function enforceRoutePermission($user, Request $request, string $path): void
     {
@@ -334,7 +334,8 @@ class AdminRbacGuard
      * Returns:
      *  - the permission slug string if a menu item with a permission was found
      *  - '' (empty string) if a menu item was found but has no permission (NULL)
-     *  - null if no menu item matches (non-menu route)
+     *  - null ONLY for empty paths (dashboard root) — non-menu routes now
+     *    fall back to 'browse-dashboard' instead of passing through unguarded.
      */
     private function lookupMenuPermission(string $path): ?string
     {
@@ -355,7 +356,8 @@ class AdminRbacGuard
         for ($i = count($segments); $i >= 1; $i--) {
             $uri = implode('/', array_slice($segments, 0, $i));
             // Skip candidates where the last segment is purely numeric (an ID).
-            if (ctype_digit(end(array_slice($segments, 0, $i)))) {
+            $candidateSegments = array_slice($segments, 0, $i);
+            if (ctype_digit(end($candidateSegments))) {
                 continue;
             }
             $candidates[] = $uri;
@@ -376,7 +378,14 @@ class AdminRbacGuard
             ->get();
 
         if ($menuItems->isEmpty()) {
-            return null;
+            // No menu entry found for any ancestor URI.  Instead of returning
+            // null (which lets the route through completely unguarded), fall
+            // back to 'browse-dashboard'.  This blocks non-super-admins from
+            // accessing routes that have no admin_menu entry — closing the
+            // biggest gap in the RBAC guard.  The dashboard permission is the
+            // baseline gate for the admin panel; VIP / limited admins must
+            // hold it to reach any unlisted route.
+            return 'browse-dashboard';
         }
 
         // Find the best match: prefer the longest URI (most specific).

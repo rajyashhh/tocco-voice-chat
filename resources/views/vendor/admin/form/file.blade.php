@@ -29,51 +29,54 @@
 
 <script>
     $(document).ready(function () {
-        $('#file-input-img2').on('change', function (event) {
+        // Bind to EVERY file input on the page, not a hardcoded ID.
+        // Each input's closest .form-group provides the preview containers.
+        $(document).on('change', 'input[type="file"]', function (event) {
             let file = event.target.files[0];
             if (!file) return;
 
             let ext = file.name.split('.').pop().toLowerCase();
-
-            $('#preview-img2').empty();
-            $('#preview-display-img2').empty();
+            let $group = $(this).closest('.form-group');
+            let $preview = $group.find('.svga-live-preview, .file-preview, .help-block').first();
+            // Fall back to a temporary container if no preview area exists.
+            if (!$preview.length) {
+                $preview = $('<div class="svga-live-preview" style="margin-top:8px;"></div>');
+                $group.find('input[type="file"]').after($preview);
+            }
+            $preview.empty();
 
             if (['png','jpg','jpeg','gif','webp','svg'].includes(ext)) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    let html = `<img src="${e.target.result}" style="max-height:150px" class="img img-thumbnail" />`;
-                    $('#preview-img2').html(html);
-                    $('#preview-display-img2').html(html);
+                    $preview.html(`<img src="${e.target.result}" style="max-height:150px" class="img img-thumbnail" />`);
                 };
                 reader.readAsDataURL(file);
             } else if (['mp4','mov','webm'].includes(ext)) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    let html = `<video src="${e.target.result}" controls style="max-height:150px"></video>`;
-                    $('#preview-img2').html(html);
-                    $('#preview-display-img2').html(html);
+                    $preview.html(`<video src="${e.target.result}" controls style="max-height:150px"></video>`);
                 };
                 reader.readAsDataURL(file);
             } else if (ext === 'svga') {
                 let uniqueId = 'svga_preview_' + Date.now();
-                let html = `<div id="${uniqueId}" style="height:110px;"></div>`;
-                $('#preview-img2').html(html);
-                $('#preview-display-img2').html(html);
+                $preview.html(`<div id="${uniqueId}" style="height:110px;"></div>`);
 
-                let player = new SVGA.Player('#' + uniqueId);
-                player.loops = 0;
-                player.clearsAfterStop = false;
-                let parser = new SVGA.Parser('#' + uniqueId);
-                let blobUrl = URL.createObjectURL(file);
+                if (typeof SVGA !== 'undefined') {
+                    let player = new SVGA.Player('#' + uniqueId);
+                    player.loops = 0;
+                    player.clearsAfterStop = false;
+                    let parser = new SVGA.Parser('#' + uniqueId);
+                    let blobUrl = URL.createObjectURL(file);
 
-                parser.load(blobUrl, function(videoItem) {
-                    player.setVideoItem(videoItem);
-                    player.startAnimation();
-                });
+                    parser.load(blobUrl, function(videoItem) {
+                        player.setVideoItem(videoItem);
+                        player.startAnimation();
+                    });
+                } else {
+                    $preview.html('<p style="color:#888;">SVGA file selected (player loading…)</p>');
+                }
             } else {
-                let html = `<p>Selected file: ${file.name}</p>`;
-                $('#preview-img2').html(html);
-                $('#preview-display-img2').html(html);
+                $preview.html(`<p>Selected file: ${file.name}</p>`);
             }
         });
     });

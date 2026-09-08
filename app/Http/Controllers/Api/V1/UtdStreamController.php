@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Helpers\Common;
 use App\Http\Controllers\Controller;
-use App\Services\AgoraTokenService;
 use App\Traits\HelperTraits\UtdStreamTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -45,41 +44,44 @@ class UtdStreamController extends Controller
         $identity = (string) $user->id;
         $name = $user->name ?? $user->uuid ?? $identity;
 
-        // ── Agora RTC token (local generation — Phase 1) ───────────────
-        // The Agora app_certificate must NEVER leave the server. We generate
-        // the RTC token locally with HMAC-SHA256 and hand only the opaque
-        // token + public app_id to the Flutter client.
-        $agora = new AgoraTokenService();
-
-        if (!$agora->isConfigured()) {
+        // ── UTD Stream token (server-proxied — original working flow) ──
+        // Voice-engine credentials are per-install and empty until the
+        // operator fills them in via the admin panel. Fail fast with a clear
+        // message rather than a generic 500.
+        $streamData = self::streamData();
+        if (empty($streamData['app_id']) || empty($streamData['server_secret'])) {
             return Common::apiResponse(
                 false,
-                'Agora is not configured yet. Set AGORA_APP_ID and AGORA_APP_CERTIFICATE in the environment before opening rooms.',
+                'Voice engine is not configured yet. Set the UTD Stream credentials (App ID + Server Secret) in the admin settings before opening rooms.',
                 null,
                 503
             );
         }
 
-        $result = $agora->generateRtcToken(
-            (int) $user->id,
+        $extra = $request->only([
+            'room_owner_id', 'seat_count', 'seat_mode', 'host_seat',
+            'mode_id', 'os', 'device_model', 'os_version', 'app_version',
+        ]);
+        // The app's contract with us stays service rooms/streaming, but the
+        // production engine (new generation) mints by explicit `type` and
+        // deliberately rejects the legacy `service` field. Translate here —
+        // single seam — so the shipped app needs no change.
+        $extra['type'] = $request->service === 'streaming' ? 'live_stream' : 'audio_room';
+
+        $result = self::generateStreamToken(
+            $identity,
             $request->room_name,
-            $request->role
+            $name,
+            $request->role,
+            null,
+            $extra
         );
 
         if (!$result) {
             return Common::apiResponse(false, 'Failed to generate token', null, 500);
         }
 
-        // Flutter expects these fields in the data payload.  Keep the
-        // request contract (room_name, role, service, etc.) intact so the
-        // existing validation above still runs.  We also forward room_owner_id
-        // and other seat params as opaque data the client may read later.
-        $payload = array_merge($result, [
-            'app_id'       => config('agora.app_id'),
-            'channel_name' => $request->room_name,
-        ]);
-
-        return Common::apiResponse(true, 'Success', $payload);
+        return Common::apiResponse(true, 'Success', $result);
     }
 
     // ─── Rooms ───────────────────────────────────────────────

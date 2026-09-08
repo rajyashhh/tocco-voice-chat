@@ -90,6 +90,17 @@ class WareSaveService
         if ($form->show_img instanceof UploadedFile) {
             $allowedExtensions = ['svga', 'mp4', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm'];
             $ext = strtolower($form->show_img->guessExtension());
+            $originalExt = strtolower($form->show_img->getClientOriginalExtension());
+
+            // SVGA is ZIP-based — MIME detection guesses 'zip' or empty.
+            // Always trust the real .svga extension.
+            if ($originalExt === 'svga') {
+                $ext = 'svga';
+            }
+
+            if ($ext === 'zz' && $originalExt === 'svga') {
+                $ext = 'svga';
+            }
 
             if (!in_array($ext, $allowedExtensions)) {
                 throw ValidationException::withMessages([
@@ -110,6 +121,9 @@ class WareSaveService
             $ext = strtolower($form->img2->guessExtension());
             $originalExt = strtolower($form->img2->getClientOriginalExtension());
 
+            // SVGA is ZIP-based — MIME detection guesses 'zip' or empty.
+            // Always trust the real .svga extension.
+            if ($originalExt === 'svga') $ext = 'svga';
             if ($ext === 'zz' && $originalExt === 'svga') $ext = 'svga';
             if ($ext === 'gif' && $originalExt === 'gif') $ext = 'png';
 

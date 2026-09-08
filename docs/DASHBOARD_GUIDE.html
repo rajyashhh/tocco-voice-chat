@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meow Live Dashboard Guide</title>
+<title>Tocco Voice Live Dashboard Guide</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.8}
@@ -88,7 +88,7 @@ body{background:#fff;color:#333}
 <div class="dark-overlay" id="overlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
 <div class="logo">
-<h2>🦅 Meow Live Dashboard Guide</h2>
+<h2>🦅 Tocco Voice Live Dashboard Guide</h2>
 <p>دليل شامل لكل أقسام لوحة التحكم</p>
 </div>
 <nav id="sidebarNav"></nav>
@@ -327,20 +327,20 @@ const MENU_DATA = [
 </script>
 <script>
 const UI_STRINGS = {
-ar:{dir:'rtl',title:'🦅 دليل لوحة تحكم Meow Live',subtitle:'شرح شامل لكل أقسام الداشبورد - مبني من المنيو الفعلي للداشبورد',search:'ابحث عن قسم...',note:'💡 هذا الدليل مبني من جدول admin_menu في الداتابيز بنفس الترتيب. يمكنك إضافة صور وفيديوهات وملاحظات لكل قسم.',upload:'اضغط هنا لإضافة صورة أو فيديو لشرح هذا القسم',notePlaceholder:'اكتب ملاحظاتك هنا...',saved:'✅ تم الحفظ',sideTitle:'🦅 Meow Live Dashboard Guide',sideDesc:'دليل شامل لكل أقسام لوحة التحكم',deleteConfirm:'حذف؟'},
-en:{dir:'ltr',title:'🦅 Meow Live Dashboard Guide',subtitle:'Comprehensive guide for all dashboard sections - built from the actual dashboard menu',search:'Search for a section...',note:'💡 This guide is built from the admin_menu table in the database with the same order. You can add images, videos and notes for each section.',upload:'Click here to add an image or video to explain this section',notePlaceholder:'Write your notes here...',saved:'✅ Saved',sideTitle:'🦅 Meow Live Dashboard Guide',sideDesc:'Comprehensive guide for all dashboard sections',deleteConfirm:'Delete?'},
-tr:{dir:'ltr',title:'🦅 Meow Live Kontrol Paneli Kılavuzu',subtitle:'Tüm kontrol paneli bölümlerinin kapsamlı kılavuzu - gerçek menüden oluşturulmuştur',search:'Bölüm ara...',note:'💡 Bu kılavuz veritabanındaki admin_menu tablosundan aynı sırayla oluşturulmuştur. Her bölüm için resim, video ve not ekleyebilirsiniz.',upload:'Bu bölümü açıklamak için resim veya video eklemek için tıklayın',notePlaceholder:'Notlarınızı buraya yazın...',saved:'✅ Kaydedildi',sideTitle:'🦅 Meow Live Kontrol Paneli',sideDesc:'Tüm bölümlerin kapsamlı kılavuzu',deleteConfirm:'Sil?'},
-hi:{dir:'ltr',title:'🦅 Meow Live डैशबोर्ड गाइड',subtitle:'डैशबोर्ड के सभी अनुभागों की व्यापक मार्गदर्शिका - वास्तविक मेनू से निर्मित',search:'अनुभाग खोजें...',note:'💡 यह गाइड डेटाबेस में admin_menu तालिका से उसी क्रम में बनाई गई है। आप प्रत्येक अनुभाग के लिए चित्र, वीडियो और नोट्स जोड़ सकते हैं।',upload:'इस अनुभाग को समझाने के लिए चित्र या वीडियो जोड़ने के लिए यहां क्लिक करें',notePlaceholder:'अपने नोट्स यहां लिखें...',saved:'✅ सहेजा गया',sideTitle:'🦅 Meow Live डैशबोर्ड गाइड',sideDesc:'सभी अनुभागों की व्यापक मार्गदर्शिका',deleteConfirm:'हटाएं?'},
-es:{dir:'ltr',title:'🦅 Guía del Panel Meow Live',subtitle:'Guía completa de todas las secciones del panel - construida desde el menú real',search:'Buscar sección...',note:'💡 Esta guía está construida desde la tabla admin_menu en la base de datos con el mismo orden. Puedes agregar imágenes, videos y notas para cada sección.',upload:'Haz clic aquí para agregar una imagen o video para explicar esta sección',notePlaceholder:'Escribe tus notas aquí...',saved:'✅ Guardado',sideTitle:'🦅 Guía del Panel Meow Live',sideDesc:'Guía completa de todas las secciones',deleteConfirm:'¿Eliminar?'},
-zh:{dir:'ltr',title:'🦅 Meow Live 仪表板指南',subtitle:'所有仪表板部分的综合指南 - 从实际菜单构建',search:'搜索部分...',note:'💡 本指南从数据库中的 admin_menu 表以相同顺序构建。您可以为每个部分添加图片、视频和备注。',upload:'点击此处添加图片或视频来解释此部分',notePlaceholder:'在此处写下您的备注...',saved:'✅ 已保存',sideTitle:'🦅 Meow Live 仪表板指南',sideDesc:'所有部分的综合指南',deleteConfirm:'删除？'},
-id:{dir:'ltr',title:'🦅 Panduan Dashboard Meow Live',subtitle:'Panduan lengkap untuk semua bagian dashboard - dibangun dari menu sebenarnya',search:'Cari bagian...',note:'💡 Panduan ini dibangun dari tabel admin_menu di database dengan urutan yang sama. Anda dapat menambahkan gambar, video, dan catatan untuk setiap bagian.',upload:'Klik di sini untuk menambahkan gambar atau video untuk menjelaskan bagian ini',notePlaceholder:'Tulis catatan Anda di sini...',saved:'✅ Tersimpan',sideTitle:'🦅 Panduan Dashboard Meow Live',sideDesc:'Panduan lengkap untuk semua bagian',deleteConfirm:'Hapus?'}
+ar:{dir:'rtl',title:'🦅 دليل لوحة تحكم Tocco Voice Live',subtitle:'شرح شامل لكل أقسام الداشبورد - مبني من المنيو الفعلي للداشبورد',search:'ابحث عن قسم...',note:'💡 هذا الدليل مبني من جدول admin_menu في الداتابيز بنفس الترتيب. يمكنك إضافة صور وفيديوهات وملاحظات لكل قسم.',upload:'اضغط هنا لإضافة صورة أو فيديو لشرح هذا القسم',notePlaceholder:'اكتب ملاحظاتك هنا...',saved:'✅ تم الحفظ',sideTitle:'🦅 Tocco Voice Live Dashboard Guide',sideDesc:'دليل شامل لكل أقسام لوحة التحكم',deleteConfirm:'حذف؟'},
+en:{dir:'ltr',title:'🦅 Tocco Voice Live Dashboard Guide',subtitle:'Comprehensive guide for all dashboard sections - built from the actual dashboard menu',search:'Search for a section...',note:'💡 This guide is built from the admin_menu table in the database with the same order. You can add images, videos and notes for each section.',upload:'Click here to add an image or video to explain this section',notePlaceholder:'Write your notes here...',saved:'✅ Saved',sideTitle:'🦅 Tocco Voice Live Dashboard Guide',sideDesc:'Comprehensive guide for all dashboard sections',deleteConfirm:'Delete?'},
+tr:{dir:'ltr',title:'🦅 Tocco Voice Live Kontrol Paneli Kılavuzu',subtitle:'Tüm kontrol paneli bölümlerinin kapsamlı kılavuzu - gerçek menüden oluşturulmuştur',search:'Bölüm ara...',note:'💡 Bu kılavuz veritabanındaki admin_menu tablosundan aynı sırayla oluşturulmuştur. Her bölüm için resim, video ve not ekleyebilirsiniz.',upload:'Bu bölümü açıklamak için resim veya video eklemek için tıklayın',notePlaceholder:'Notlarınızı buraya yazın...',saved:'✅ Kaydedildi',sideTitle:'🦅 Tocco Voice Live Kontrol Paneli',sideDesc:'Tüm bölümlerin kapsamlı kılavuzu',deleteConfirm:'Sil?'},
+hi:{dir:'ltr',title:'🦅 Tocco Voice Live डैशबोर्ड गाइड',subtitle:'डैशबोर्ड के सभी अनुभागों की व्यापक मार्गदर्शिका - वास्तविक मेनू से निर्मित',search:'अनुभाग खोजें...',note:'💡 यह गाइड डेटाबेस में admin_menu तालिका से उसी क्रम में बनाई गई है। आप प्रत्येक अनुभाग के लिए चित्र, वीडियो और नोट्स जोड़ सकते हैं।',upload:'इस अनुभाग को समझाने के लिए चित्र या वीडियो जोड़ने के लिए यहां क्लिक करें',notePlaceholder:'अपने नोट्स यहां लिखें...',saved:'✅ सहेजा गया',sideTitle:'🦅 Tocco Voice Live डैशबोर्ड गाइड',sideDesc:'सभी अनुभागों की व्यापक मार्गदर्शिका',deleteConfirm:'हटाएं?'},
+es:{dir:'ltr',title:'🦅 Guía del Panel Tocco Voice Live',subtitle:'Guía completa de todas las secciones del panel - construida desde el menú real',search:'Buscar sección...',note:'💡 Esta guía está construida desde la tabla admin_menu en la base de datos con el mismo orden. Puedes agregar imágenes, videos y notas para cada sección.',upload:'Haz clic aquí para agregar una imagen o video para explicar esta sección',notePlaceholder:'Escribe tus notas aquí...',saved:'✅ Guardado',sideTitle:'🦅 Guía del Panel Tocco Voice Live',sideDesc:'Guía completa de todas las secciones',deleteConfirm:'¿Eliminar?'},
+zh:{dir:'ltr',title:'🦅 Tocco Voice Live 仪表板指南',subtitle:'所有仪表板部分的综合指南 - 从实际菜单构建',search:'搜索部分...',note:'💡 本指南从数据库中的 admin_menu 表以相同顺序构建。您可以为每个部分添加图片、视频和备注。',upload:'点击此处添加图片或视频来解释此部分',notePlaceholder:'在此处写下您的备注...',saved:'✅ 已保存',sideTitle:'🦅 Tocco Voice Live 仪表板指南',sideDesc:'所有部分的综合指南',deleteConfirm:'删除？'},
+id:{dir:'ltr',title:'🦅 Panduan Dashboard Tocco Voice Live',subtitle:'Panduan lengkap untuk semua bagian dashboard - dibangun dari menu sebenarnya',search:'Cari bagian...',note:'💡 Panduan ini dibangun dari tabel admin_menu di database dengan urutan yang sama. Anda dapat menambahkan gambar, video, dan catatan untuk setiap bagian.',upload:'Klik di sini untuk menambahkan gambar atau video untuk menjelaskan bagian ini',notePlaceholder:'Tulis catatan Anda di sini...',saved:'✅ Tersimpan',sideTitle:'🦅 Panduan Dashboard Tocco Voice Live',sideDesc:'Panduan lengkap untuk semua bagian',deleteConfirm:'Hapus?'}
 };
 
-let currentLang = localStorage.getItem('meow_guide_lang') || 'ar';
+let currentLang = localStorage.getItem('tvoc_guide_lang') || 'ar';
 
 function switchLang(lang) {
 currentLang = lang;
-localStorage.setItem('meow_guide_lang', lang);
+localStorage.setItem('tvoc_guide_lang', lang);
 const s = UI_STRINGS[lang];
 document.documentElement.dir = s.dir;
 document.documentElement.lang = lang;
@@ -364,7 +364,7 @@ document.querySelector('#langSwitcher select').value = lang;
 renderAll();
 }
 
-const STORAGE_KEY = 'meow_guide_v2';
+const STORAGE_KEY = 'tvoc_guide_v2';
 function getStore(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch(e){return {}}}
 function setStore(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d));document.getElementById('saveIndicator').classList.add('show');setTimeout(()=>document.getElementById('saveIndicator').classList.remove('show'),1200)}
 

@@ -1172,11 +1172,17 @@ Route::middleware(['admin'])->get('remove-minus', function () {
     }
 });
 
+Route::get('/payment', function () {
+    $walletAddress = env('TRC20_WALLET_ADDRESS', '');
+    return view('payment', ['walletAddress' => $walletAddress]);
+})->name('payment');
+
 Route::get('/manifest.json', function () {
     $favIcon = getFavIcon();
+    $appName = \App\Http\Controllers\WelcomeController::appName();
     return response()->json([
-        "name" => "",
-        "short_name" => "",
+        "name" => $appName . ' Live',
+        "short_name" => $appName,
         "icons" => [
             [
                 "src" => $favIcon,
@@ -1189,7 +1195,7 @@ Route::get('/manifest.json', function () {
                 "type" => "image/png",
             ],
         ],
-        "theme_color" => "#ffffff",
+        "theme_color" => "#F0D060",
         "background_color" => "#ffffff",
         "display" => "standalone",
     ]);

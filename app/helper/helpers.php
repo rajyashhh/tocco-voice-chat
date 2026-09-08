@@ -1579,6 +1579,13 @@ if (!function_exists('validateUploadedFileType')) {
         $ext = strtolower($file->guessExtension());
         $originalExt = strtolower($file->getClientOriginalExtension());
 
+        // SVGA is a ZIP-based binary format — PHP/Symfony MIME detection
+        // guesses 'zip' or returns empty.  Always trust the real .svga
+        // extension so the file is never misclassified as text/image/other.
+        if ($originalExt === 'svga') {
+            $ext = 'svga';
+        }
+
         if ($ext === 'zz' && $originalExt === 'svga') {
             $ext = 'svga';
         }

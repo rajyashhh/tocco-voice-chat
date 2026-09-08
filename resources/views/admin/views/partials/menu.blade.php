@@ -75,7 +75,8 @@
                     // visible to all logged-in admins — the backend handles access.
                     // Items with roles only show when the user matches those roles.
                     $openChildVisible = $data['has_empty'] && (
-                        $data['open_free'] || ($openRolesL !== null && Admin::user()->visible($openRolesL))
+                        ($data['open_free'] && Admin::user()->isSuperAdmin())
+                        || ($openRolesL !== null && Admin::user()->visible($openRolesL))
                     );
 
                     if (@$permissionExists || $isRoleVisible || $openChildVisible ){
@@ -89,12 +90,12 @@
     $hasRoles = $roles && Admin::user()->visible($roles);
     $permission = Arr::get($item, 'permission');
     if (empty($permission)) {
-        // Leaf items with no permission set: visible to all logged-in admins.
-        // The backend middleware + controller Permission::check() handles
-        // actual access control. This preserves the original menu behavior
-        // while the backend is the source of truth for authorization.
+        // Leaf items with no permission: visible only to super admins.
+        // Non-super admins must hold an explicit permission to see a menu
+        // item — this aligns sidebar visibility with route-level enforcement
+        // in AdminRbacGuard and MainController::Permission::check().
         if (!isset($item['children'])) {
-            $hasPermission = true;
+            $hasPermission = Admin::user()->isSuperAdmin();
         } else {
             $hasPermission = false;
         }

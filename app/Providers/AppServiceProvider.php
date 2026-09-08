@@ -458,6 +458,41 @@ class AppServiceProvider extends ServiceProvider
                 config(["filesystems.disks.{$name}.bucket" => $bucket]);
                 config(["filesystems.disks.{$name}.url" => 'https://storage.googleapis.com/' . $bucket]);
             }
+
+            // Uniform Bucket-Level Access fix: the GCS bucket has uniform access
+            // enabled, which prohibits per-object ACL writes. Without this handler
+            // the Flysystem GCS adapter silently returns false on every Storage::put()
+            // / storeAs() call — files are never actually written to the bucket even
+            // though the operation "succeeds" (no exception). Setting the handler
+            // tells Flysystem to skip the ACL call and rely on the bucket-level IAM
+            // policy instead, restoring write capability.
+            // This is the root cause of the profile-photo upload 404 bug:
+            //   Common::upload() → storeAs() → GCS put() → false → object never created.
+            if (empty($diskConfig['visibility_handler'])) {
+                config(["filesystems.disks.{$name}.visibility_handler"
+                    => \League\Flysystem\GoogleCloudStorage\UniformBucketLevelAccessVisibility::class]);
+            }
+        }
+
+        // Route the default disk to GCS whenever GCS credentials actually
+        // resolved (DB settings or env). Common::upload() (60+ callers, incl.
+        // profile avatars) stores on config('filesystems.default') — with
+        // FILESYSTEM_DRIVER unset it defaulted to 'local', so multipart uploads
+        // silently landed on the container disk while the app built URLs from
+        // the bucket storage_url → guaranteed 404 after restart. Only applied
+        // when the default is still the implicit 'local' so an explicit
+        // FILESYSTEM_DRIVER pin (e.g. a true S3 deploy) always wins. The no-
+        // credentials case is handled by fallbackToLocalDisks() above, which
+        // keeps 'local' — behaviour unchanged for unconfigured installs.
+        if (config('filesystems.default') === 'local'
+            && config('filesystems.disks.gcs.driver') === 'gcs'
+            && !empty(config('filesystems.disks.gcs.bucket'))
+            && (!empty(config('filesystems.disks.gcs.key_file'))
+                || !empty(config('filesystems.disks.gcs.key_file_path'))
+                || !empty(config('filesystems.disks.gcs.project_id'))
+            )
+        ) {
+            config(['filesystems.default' => 'gcs']);
         }
     }
 

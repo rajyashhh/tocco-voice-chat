@@ -291,8 +291,13 @@ class OvipGiftTapController extends MainController
             $form->text('title', trans('title'));
             $form->text('title_en', trans('Title en'));
 
-            $form->image('show_img', trans('img'))->name(fn($file) => now()->timestamp . rand(0, 999) . '.' . $file->guessExtension())
-                ->default('1.png');
+            $form->image('show_img', trans('img'))->name(function ($file) {
+                $extension = $file->getClientOriginalExtension();
+                if (empty($extension)) {
+                    $extension = $file->guessExtension();
+                }
+                return now()->timestamp . rand(0, 999) . '.' . $extension;
+            })->default('1.png');
 
             $form->file('img2', trans('show'))->name(fn($file) => 'svga_' . Str::random(6) . '.' . $file->getClientOriginalExtension());
 

@@ -19,8 +19,9 @@
  */
 
  use Encore\Admin\Form;
- use App\Admin\Extensions\Form\Field\DynamicFields;
- use Encore\Admin\Facades\Admin;
+use App\Admin\Extensions\Form\Field\DynamicFields;
+use App\Admin\Extensions\Form\Field\CustomFile;
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Navbar;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -39,7 +40,7 @@ Admin::navbar(function ($navbar) {
     $current = request()->cookie($cookieName, config('app.locale'));
 
     $navbar->right(
-        view('vendor.multi-language.language-menu', compact('languages', 'current'))
+        view('multi-language::language-menu', compact('languages', 'current'))
     );
 });
 
@@ -66,6 +67,7 @@ view()->composer('admin::partials.css', function (Illuminate\View\View $view) {
 });
 
 Form::extend('dynamicFields', DynamicFields::class);
+Form::extend('file', CustomFile::class);
 
 
 Encore\Admin\Admin::script(<<<'JS'

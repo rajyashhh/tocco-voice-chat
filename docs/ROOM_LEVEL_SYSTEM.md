@@ -759,5 +759,5 @@ php artisan config:clear
 ---
 
 **تاريخ الإنشاء:** January 22, 2026  
-**المشروع:** Meow Live  
+**المشروع:** Tocco Voice Live  
 **الإصدار:** 1.0
