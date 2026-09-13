@@ -18,31 +18,28 @@ trait SpecialId
     public function scopeSearchByUuid(Builder $builder, $toId): Builder
     {
         return $builder->where(function ($query) use ($toId) {
-            $query->where('uuid', $toId)->orWhere(fn($q) => $q->where('special_id', $toId)->whereHas('specialId'));
+            $query->where('uuid', $toId)->orWhereHas('specialId', fn($q) => $q->where('packs.target_id', $toId));
         });
     }
     public function scopeLikeSearchByUuid(Builder $builder, $toId): Builder
     {
         return $builder->where(function ($query) use ($toId) {
             $query->where('uuid', 'like', '%' . $toId . '%')
-                ->orWhere(function ($q) use ($toId) {
-                    $q->where('special_id', 'like', '%' . $toId . '%')
-                        ->whereHas('specialId');
-                });
+                ->orWhereHas('specialId', fn($q) => $q->where('packs.target_id', 'like', '%' . $toId . '%'));
         });
     }
 
     public function scopeFitterByUuid(Builder $builder, $toId): Builder
     {
         return $builder->where(function ($query) use ($toId) {
-            $query->where('uuid', 'like',  $toId . '%')->orWhere(fn($q) => $q->where('special_id', 'like',  $toId . '%')->whereHas('specialId'));
+            $query->where('uuid', 'like',  $toId . '%')->orWhereHas('specialId', fn($q) => $q->where('packs.target_id', 'like',  $toId . '%'));
         });
     }
 
     public function scopeFitterByUuidUser(Builder $builder, $toId): Builder
     {
         return $builder->where(function ($query) use ($toId) {
-            $query->where('uuid', 'like', '%' . $toId . '%')->orWhere(fn($q) => $q->where('special_id', 'like', '%' . $toId . '%')->whereHas('specialId'));
+            $query->where('uuid', 'like', '%' . $toId . '%')->orWhereHas('specialId', fn($q) => $q->where('packs.target_id', 'like', '%' . $toId . '%'));
         });
     }
 

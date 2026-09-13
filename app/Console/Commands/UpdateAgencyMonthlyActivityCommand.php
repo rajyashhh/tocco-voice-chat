@@ -31,18 +31,22 @@ class UpdateAgencyMonthlyActivityCommand extends Command
         $monthStart = now()->startOfMonth()->toDateTimeString();
         $nextMonthStart = now()->startOfMonth()->addMonth()->toDateTimeString();
 
-        // Single atomic, set-based UPDATE. The correlated subquery is bounded by
-        // [monthStart, nextMonthStart) so it uses the (agency_id, created_at)
-        // composite index, and COALESCE(...,0) resets agencies with no gifts
-        // this month (the natural month rollover).
+        // Single atomic, set-based UPDATE using a derived table LEFT JOIN.
+        // Pre-aggregating gift_logs in a derived table first avoids the
+        // MySQL correlated subquery optimizer crash (SIGSEGV) and prevents
+        // prolonged write-lock contention on the agencies table.
+        // COALESCE(..., 0) resets agencies with no gifts this month to 0.
         $affected = DB::update(
-            'UPDATE agencies SET monthly_activity = (
-                SELECT COALESCE(SUM(gift_logs.giftPrice), 0)
-                FROM gift_logs
-                WHERE gift_logs.agency_id = agencies.id
-                  AND gift_logs.created_at >= ?
-                  AND gift_logs.created_at < ?
-            )',
+            'UPDATE agencies
+             LEFT JOIN (
+                 SELECT agency_id, SUM(giftPrice) AS total_activity
+                 FROM gift_logs
+                 WHERE created_at >= ?
+                   AND created_at < ?
+                   AND agency_id IS NOT NULL
+                 GROUP BY agency_id
+             ) AS monthly_totals ON agencies.id = monthly_totals.agency_id
+             SET agencies.monthly_activity = COALESCE(monthly_totals.total_activity, 0)',
             [$monthStart, $nextMonthStart]
         );
 

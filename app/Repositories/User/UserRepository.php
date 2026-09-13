@@ -109,16 +109,8 @@ class UserRepository extends Repository
                 $query->where('agency_id', 0)
                     ->orWhereNull('agency_id');
             })
-            ->where(function ($query) {
-                $query->where('is_bd', 0)
-                    ->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             //            ->whereDoesntHave('shippingAgency')
             ->where(function ($query) use ($key) {
@@ -140,21 +132,8 @@ class UserRepository extends Repository
                 $query->where('agency_id', 0)
                     ->orWhereNull('agency_id');
             })
-            ->where(function ($query) {
-                $query->where('is_bd', 0)
-                    ->orWhereNull('is_bd');
-            })
-            ->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             //            ->whereDoesntHave('shippingAgency')
             ->where(function ($query) use ($key) {
@@ -173,23 +152,12 @@ class UserRepository extends Repository
     {
         return User::selectRaw('concat(COALESCE(name, ""), " - ", uuid) as name, id')
             ->where(function ($query) {
-                $query->where('is_bd', 0)->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })
-            ->where(function ($query) {
                 $query->where('agency_id', 0)
                     ->orWhereNull('agency_id');
             })
             // ->where('type_user', 0)
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             ->whereDoesntHave('shippingAgency')
             ->where(function ($query) use ($key) {
@@ -226,22 +194,11 @@ class UserRepository extends Repository
 
     public function superAdminUsers($key, $page, $perPage, $selectedId = null, array $countryIds = [])
     {
-        return User::selectRaw('concat(COALESCE(name, ""), " - ", uuid) as name, id')
-            ->where(function ($query) {
-                $query->where('is_bd', 0)->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })->where(function ($query) {
+        return User::selectRaw('concat(COALESCE(name, ""), " - ", uuid) as name, id')->where(function ($query) {
                 $query->where('agency_id', 0)->orWhereNull('agency_id');
             })
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             ->whereDoesntHave('shippingAgency')
             ->when($countryIds, fn($q) => $q->whereIn('country_id', $countryIds))
@@ -266,22 +223,11 @@ class UserRepository extends Repository
     {
         return User::selectRaw('concat(COALESCE(name, ""), " - ", uuid) as name, id')
             ->where(function ($query) {
-                $query->where('is_bd', 0)->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })
-            ->where(function ($query) {
                 $query->where('agency_id', 0)
                     ->orWhereNull('agency_id');
             })
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             ->whereDoesntHave('shippingAgency')
             ->when($countryIds, fn($q) => $q->whereIn('country_id', $countryIds))
@@ -296,22 +242,11 @@ class UserRepository extends Repository
     {
         return User::selectRaw('concat(COALESCE(name, ""), " - ", uuid) as name, id')
             ->where(function ($query) {
-                $query->where('is_bd', 0)->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })
-            ->where(function ($query) {
                 $query->where('agency_id', 0)
                     ->orWhereNull('agency_id');
             })
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             ->whereDoesntHave('shippingAgency')
             ->when($countryIds, fn($q) => $q->whereIn('country_id', $countryIds))
@@ -338,22 +273,11 @@ class UserRepository extends Repository
     {
         return User::selectRaw('concat(COALESCE(name, ""), " - ", uuid) as name, id')
             ->where(function ($query) {
-                $query->where('is_bd', 0)->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })
-            ->where(function ($query) {
                 $query->where('agency_id', 0)
                     ->orWhereNull('agency_id');
             })
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             ->whereDoesntHave('shippingAgency')
             ->when($countryIds, fn($q) => $q->whereIn('country_id', $countryIds))
@@ -409,22 +333,11 @@ class UserRepository extends Repository
 
         return User::selectRaw('concat(COALESCE(name, ""), " - ", uuid) as name, id')
             ->where(function ($query) {
-                $query->where('is_bd', 0)->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })
-            ->where(function ($query) {
                 $query->where('agency_id', 0)
                     ->orWhereNull('agency_id');
             })
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             ->whereDoesntHave('shippingAgency')
             ->where('country_id', $superAdmin->country_id)
@@ -447,22 +360,11 @@ class UserRepository extends Repository
 
         return User::selectRaw('concat(COALESCE(name, ""), " - ", uuid) as name, id')
             ->where(function ($query) {
-                $query->where('is_bd', 0)->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
-            })
-            ->where(function ($query) {
                 $query->where('agency_id', 0)
                     ->orWhereNull('agency_id');
             })
             ->whereDoesntHave('hostAgency', function ($query) {
-                $query->where('type', 1);
+                $query->where('Host_agency', 1);
             })
             ->whereDoesntHave('shippingAgency')
             ->whereIn('country_id', $countries)
@@ -488,20 +390,8 @@ class UserRepository extends Repository
     public function searchUserAgencyShipping($key, $page, $perPage)
     {
         return User::selectRaw('concat(name, " - ", uuid) as name, id')
-            //            ->whereDoesntHave('shippingAgency', function ($query) {
-            //                $query->where('type', 2)->where('deleted_at' , null);
-            //            })
-            ->whereDoesntHave('shippingAgency')
-            ->where(function ($query) {
-                $query->where('is_bd', 0)->orWhereNull('is_bd');
-            })->where(function ($query) {
-                $query->where('is_area_manager', 0)->orWhereNull('is_area_manager');
-            })->where(function ($query) {
-                $query->where('sub_area_manger', 0)->orWhereNull('sub_area_manger');
-            })->where(function ($query) {
-                $query->where('is_super_admin', 0)->orWhereNull('is_super_admin');
-            })->where(function ($query) {
-                $query->where('is_sub_super_admin', 0)->orWhereNull('is_sub_super_admin');
+            ->whereNotIn('id', function ($query) {
+                $query->select('app_owner_id')->from('agencies')->whereNotNull('app_owner_id');
             })
             ->where(function ($query) use ($key) {
                 $query->where('name', 'like', '%' . $key . '%')

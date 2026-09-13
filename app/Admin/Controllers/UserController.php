@@ -228,6 +228,7 @@ class UserController extends MainController
                         $input = $this->input;
                         $query->where(function ($q) use ($input) {
                             $q->where('name', 'like', "%$input%")
+                                ->orWhere('id', $input)
                                 ->orWhere('uuid', 'like', "%$input%")
                                 ->orWhere('special_id', 'like', "%$input%")
                                 ->orWhere('nickname', 'like', "%$input%")

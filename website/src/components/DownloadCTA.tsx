@@ -23,8 +23,7 @@ export default function DownloadCTA() {
             {/* Store buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {[
-                { label: 'App Store', icon: '🍎', href: '#', comingSoon: true },
-                { label: 'Google Play', icon: '▶️', href: '#', comingSoon: true },
+                { label: 'Google Play', icon: '▶️', href: 'https://play.google.com/store/apps/details?id=com.tocco.voicechat' },
                 { label: 'Android APK', icon: '🤖', href: 'https://github.com/rajyashhh/tocco-voice-chat/releases/download/Application/app-release.apk', download: true },
               ].map((store) => (
                 <a
@@ -33,17 +32,12 @@ export default function DownloadCTA() {
                   download={store.download ? 'tocco-voice.apk' : undefined}
                   target={store.download ? undefined : "_blank"}
                   rel="noopener noreferrer"
-                  onClick={(e) => store.comingSoon && e.preventDefault()}
-                  className={`inline-flex items-center justify-center gap-3 bg-white text-brand px-7 py-3.5 rounded-full text-[15px] font-semibold transition-all shadow-[0_4px_14px_rgba(0,0,0,0.1)] min-w-[180px] ${
-                    store.comingSoon 
-                      ? 'opacity-70 cursor-not-allowed' 
-                      : 'hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)]'
-                  }`}
+                  className="inline-flex items-center justify-center gap-3 bg-white text-brand px-7 py-3.5 rounded-full text-[15px] font-semibold transition-all shadow-[0_4px_14px_rgba(0,0,0,0.1)] min-w-[180px] hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)]"
                 >
                   <span className="text-[18px]">{store.icon}</span>
                   <div className="text-left">
                     <p className="text-[11px] font-normal text-brand/70 leading-none mb-0.5">
-                      {store.comingSoon ? 'Coming Soon' : (store.download ? 'Download' : 'Get it on')}
+                      {store.download ? 'Download' : 'Get it on'}
                     </p>
                     <p className="text-[14px] font-bold text-brand leading-none">{store.label}</p>
                   </div>

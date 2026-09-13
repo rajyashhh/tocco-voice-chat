@@ -24,8 +24,12 @@ class ShippingAdminTransaction extends Model
     ];
 
     // Leg types.
-    public const FUND_OUT   = 'shipping_fund_out';
-    public const FUND_IN    = 'shipping_fund_in';
-    public const CHARGE_OUT = 'shipping_charge_out';
-    public const CHARGE_IN  = 'shipping_charge_in';
+    public const FUND_OUT            = 'shipping_fund_out';
+    public const FUND_IN             = 'shipping_fund_in';
+    public const CHARGE_OUT          = 'shipping_charge_out';
+    public const CHARGE_IN           = 'shipping_charge_in';
+    public const MAIN_FUND_OUT       = 'main_fund_out';
+    public const MAIN_FUND_IN        = 'main_fund_in';
+    public const MAIN_REMOVE_AGENCY  = 'main_remove_agency';
+    public const MAIN_REMOVE         = 'main_remove';
 }

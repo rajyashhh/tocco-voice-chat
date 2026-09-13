@@ -44,28 +44,98 @@ class CustomFile extends File
     }
 
     /**
-     * Inject SVGA into bootstrap-fileinput's fileTypeSettings BEFORE the
-     * .fileinput() call.  This is the ONLY reliable hook: the field's inline
-     * script runs during Admin::script() output, so prepending here ensures
-     * the extension is live before the plugin initialises each instance.
+     * Inject SVGA support into the per-instance fileinput() options.
      *
-     * The vendor partials.js view is NOT rendered by the admin layout, so
-     * any SVGA extension placed there has no effect.
+     * ROOT CAUSE (verified against fileinput.min.js v4.5.2 source):
+     *
+     * $.fn.fileinput.defaults does NOT contain fileTypeSettings in v4.5.2.
+     * That object only holds simple scalar UI options (language, showCaption…).
+     * fileTypeSettings lives on the plugin's internal defaults literal (the
+     * 'Z' / 'v.defaults' object inside the IIFE closure) and is deep-merged
+     * with per-instance options via $.extend(true, {}, internalDefaults, opts).
+     *
+     * The previous setupScripts() wrote:
+     *   $.fn.fileinput.defaults.fileTypeSettings.svga = ...
+     * This targeted a property that does not exist → TypeError / silent no-op.
+     * The plugin's internal merge never saw the svga entry.
+     *
+     * _parseFileType(mime, filename) then looped through allowedPreviewTypes
+     * (default: ["image","html","text","video","audio","flash","pdf","object"])
+     * and called fileTypeSettings.text(mime, filename).  For a .svga file the
+     * browser reports MIME="" or "text/plain" (unknown extension).
+     * text:function matches t.compare(e,"text.*") → true for "text/plain" →
+     * FileReader.readAsText() fires → binary content dumped into a <textarea>.
+     *
+     * THE FIX:
+     *   1. Inject fileTypeSettings.svga (extension-only matcher) into the
+     *      per-instance options. Since JSON cannot carry JS functions, we
+     *      build the .fileinput() call manually in setupScripts().
+     *   2. In allowedPreviewTypes, insert 'svga' BEFORE 'text'.  'text' is
+     *      kept intact so .txt/.json/.js/.css etc. continue to render in the
+     *      text preview as before.  Because _parseFileType() stops at the
+     *      FIRST match, 'svga' is tried before 'text': for a .svga file the
+     *      custom matcher returns true immediately and 'text' is never reached.
+     *   3. The 'svga' type has no built-in plugin template, so the plugin
+     *      falls through to the generic 'other' template (file icon + download
+     *      link) — verified from the v4.5.2 source: _previewFile() calls
+     *      _generatePreviewTemplate("svga", blobUrl, ...) and since there is
+     *      no previewTemplates["svga"], it uses the 'other' fallback.
+     *   4. FileReader.readAsArrayBuffer() (not readAsText) is invoked for the
+     *      .svga file because D(text)=false, z(html)=false, $(image)=false;
+     *      readAsArrayBuffer is only used for magic-byte sniffing and does NOT
+     *      corrupt the file. The original File object is pushed to filestack
+     *      unconditionally via r.addToStack(B) AFTER the FileReader path,
+     *      so FormData always receives the raw binary blob.
      */
     protected function setupScripts($options)
     {
-        parent::setupScripts($options);
+        $selector = $this->getElementClassSelector();
 
-        $svgaInit = <<<'SVGA_INIT'
-if(typeof jQuery!=='undefined'&&jQuery.fn.fileinput){
- var d=jQuery.fn.fileinput.defaults;
- if(d&&d.fileTypeSettings&&!d.fileTypeSettings.svga){
-  d.fileTypeSettings.svga=function(t,n){return/\.svga$/i.test(n)};
- }
-}
-SVGA_INIT;
+        $this->script = <<<SCRIPT
+(function() {
+    var _base = {$options};
+    var _svgaTypes = ["image", "html", "svga", "text", "video", "audio", "flash", "pdf", "object"];
+    var _merged = $.extend(true, {}, _base);
+    _merged.allowedPreviewTypes = _svgaTypes;
+    _merged.fileTypeSettings = $.extend({}, (_base.fileTypeSettings || {}), {
+        svga: function(mime, filename) {
+            return /\.svga$/i.test(filename || '');
+        }
+    });
+    $("input{$selector}").fileinput(_merged);
+})();
+SCRIPT;
 
-        $this->script = $svgaInit . "\n" . $this->script;
+        if ($this->fileActionSettings['showRemove']) {
+            $text = [
+                'title'   => trans('admin.delete_confirm'),
+                'confirm' => trans('admin.confirm'),
+                'cancel'  => trans('admin.cancel'),
+            ];
+
+            $this->script .= <<<EOT
+
+$("input{$selector}").on('filebeforedelete', function() {
+    return new Promise(function(resolve, reject) {
+        var remove = resolve;
+        swal({
+            title: "{$text['title']}",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "{$text['confirm']}",
+            showLoaderOnConfirm: true,
+            cancelButtonText: "{$text['cancel']}",
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    resolve(remove());
+                });
+            }
+        });
+    });
+});
+EOT;
+        }
     }
 
     protected function preview()

@@ -22,7 +22,7 @@
                             @endforeach
                         @endif
 
-                        @if (Admin::user()->type == 'superadmin')
+                        @if (in_array(Admin::user()->type, ['superadmin', 'sub_super_admin', 'country', 'sub_country']))
                             @foreach(Admin::menuLinks() as $link)
                                 <li>
                                     <a href="{{ superadmin_url($link['uri']) }}"><i
@@ -106,7 +106,7 @@
                 @endforeach
             @endif
 
-            @if (in_array(Admin::user()->type, ['superadmin', 'sub_super_admin']))
+            @if (in_array(Admin::user()->type, ['superadmin', 'sub_super_admin', 'country', 'sub_country']))
                 @php
                     $superadminLinks = [
                         ['uri' => '/', 'icon' => '🏠', 'title' => __('Dashboard'), 'permission' => 'dashboard'],
@@ -370,7 +370,7 @@
             @endif
 
             @php
-                $adminTypes = ['bd', 'superadmin', 'sub_super_admin', 'area-manager', 'sub_area_manager'];
+                $adminTypes = ['bd', 'superadmin', 'sub_super_admin', 'country', 'sub_country', 'area-manager', 'sub_area_manager'];
             @endphp
 
             @if (!in_array(Admin::user()->type, $adminTypes) && !session('preview_superadmin') &&!session('preview_area_manager'))

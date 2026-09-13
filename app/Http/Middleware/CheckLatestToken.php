@@ -32,6 +32,11 @@ class CheckLatestToken
     {
         if (Auth::check()) {
             $user = Auth::user();
+            // Bypass token check if authenticated user is an Admin (e.g., from admin portal session)
+            if (!($user instanceof \App\Models\User)) {
+                return $next($request);
+            }
+
             $currentToken = $user->currentAccessToken();
 
             // No resolvable token on the authenticated user => not authenticated.

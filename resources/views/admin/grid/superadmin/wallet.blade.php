@@ -6,11 +6,16 @@
     // country manager's own child shipping super admins inside its own country.
     // The ShippingSuperAdmin model's global scope already pins type=shipping_super_admin.
     $__countryManager = Auth::user();
+    $__countryId = (int) ($__countryManager?->country_id ?: session('filter_country_id') ?: 0);
     $fundableShippingSuperAdmins = collect();
-    if ($__countryManager && $__countryManager->type === 'superadmin' && (int) $__countryManager->country_id > 0) {
+    if ($__countryManager && in_array($__countryManager->type, ['country', 'superadmin', 'sub_country'], true)) {
         $fundableShippingSuperAdmins = \App\Models\ShippingSuperAdmin::query()
-            ->where('parent_id', $__countryManager->id)
-            ->where('country_id', $__countryManager->country_id)
+            ->when($__countryId > 0, fn ($query) => $query->where('country_id', $__countryId))
+            ->where(function ($query) use ($__countryManager) {
+                $query->where('parent_id', $__countryManager->id)
+                    ->orWhereNull('parent_id')
+                    ->orWhere('parent_id', 0);
+            })
             ->orderBy('name')
             ->get(['id', 'name', 'username']);
     }
@@ -131,7 +136,8 @@
         color: #fff; /* نص أبيض */
         font-size: 20px;
         text-align: center;
-        width: 500px;
+        width: 100%;
+        max-width: 600px;
         margin: 42px auto;
         border-radius: 12px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -153,6 +159,7 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
+        flex-wrap: wrap;
     }
 
     .card-visa .btn {
@@ -272,7 +279,7 @@ padding: 20px; color: ; font-size: 20px; text-align: center; width: 500px; margi
             {{ __('Charge') }}
         </button>
         @endif
-        @if ($fundableShippingSuperAdmins->isNotEmpty() && (\Encore\Admin\Facades\Admin::user()->can('add-switch-coin-recharge') || \Encore\Admin\Facades\Admin::user()->can('*')))
+        @if ((\Encore\Admin\Facades\Admin::user()->can('add-switch-coin-recharge') || \Encore\Admin\Facades\Admin::user()->can('*')) || in_array(optional(\Encore\Admin\Facades\Admin::user())->type, ['country', 'superadmin', 'sub_country'], true))
         <button onclick="openFundSsaModal()" class="btn btn-warning btn-sm">
             {{ __('Fund shipping super admin') }}
         </button>
@@ -369,12 +376,17 @@ padding: 20px; color: ; font-size: 20px; text-align: center; width: 500px; margi
             <label for="fund_ssa_target_id">{{ __('receiver') }}</label>
             <select id="fund_ssa_target_id" name="target_id" class="form-control" required>
                 <option value="">{{ __('select') }}</option>
-                @foreach ($fundableShippingSuperAdmins as $ssa)
+                @forelse ($fundableShippingSuperAdmins as $ssa)
                     <option value="{{ $ssa->id }}">
                         {{ $ssa->name ?: $ssa->username ?: ('ID: ' . $ssa->id) }} (ID: {{ $ssa->id }})
                     </option>
-                @endforeach
+                @empty
+                    <option value="" disabled>{{ __('No shipping super admin found in your country') }}</option>
+                @endforelse
             </select>
+            @if ($fundableShippingSuperAdmins->isEmpty())
+                <small class="form-text text-danger">{{ __('No shipping super admin found in your country') }}</small>
+            @endif
         </div>
 
         <div class="form-group">

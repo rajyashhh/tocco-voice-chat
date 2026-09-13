@@ -74,8 +74,19 @@
                     // open_free items (no permission + no role restriction) are
                     // visible to all logged-in admins — the backend handles access.
                     // Items with roles only show when the user matches those roles.
+                    // Country Manager parity fix: newly created Country Managers
+                    // (type='country') and Sub-Country admins (type='sub_country')
+                    // carry no roles/permissions, so isSuperAdmin() (role/permission
+                    // based) is false for them and every open (no-permission) child
+                    // was hidden, collapsing the sidebar to nothing. Grant them the
+                    // same open-child visibility as legacy superadmin/sub_super_admin
+                    // accounts. Permission-bound children stay gated by can()/
+                    // visible() below — this branch only covers permission-free nodes.
+                    // The type check lives HERE (not in isSuperAdmin()) because
+                    // isSuperAdmin() is the authoritative test used by RBAC security
+                    // guards and must keep its strict role/wildcard semantics.
                     $openChildVisible = $data['has_empty'] && (
-                        ($data['open_free'] && Admin::user()->isSuperAdmin())
+                        ($data['open_free'] && (Admin::user()->isSuperAdmin() || in_array(Admin::user()->type, ['superadmin', 'sub_super_admin', 'country', 'sub_country'])))
                         || ($openRolesL !== null && Admin::user()->visible($openRolesL))
                     );
 
@@ -95,7 +106,13 @@
         // item — this aligns sidebar visibility with route-level enforcement
         // in AdminRbacGuard and MainController::Permission::check().
         if (!isset($item['children'])) {
-            $hasPermission = Admin::user()->isSuperAdmin();
+            // Country Manager parity fix: same rationale as the $openChildVisible
+            // branch above — new country/sub_country admins hold no roles, so the
+            // role-based isSuperAdmin() hid every permission-free leaf. Legacy
+            // superadmin/sub_super_admin already pass isSuperAdmin(); the type
+            // check only ADDS visibility for country/sub_country. Explicitly
+            // permission-bound leaves are unaffected (gated by can()).
+            $hasPermission = Admin::user()->isSuperAdmin() || in_array(Admin::user()->type, ['superadmin', 'sub_super_admin', 'country', 'sub_country']);
         } else {
             $hasPermission = false;
         }

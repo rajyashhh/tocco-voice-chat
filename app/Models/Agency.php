@@ -10,7 +10,7 @@ use App\Traits\TimestampsWithTimezone;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Modules\AgencyApp\Traits\AgencyAdditionalInfoTraits;
 use Modules\SalaryTransaction\Entities\ChargeAgency;
 use Modules\SalaryTransaction\Entities\SalaryRequest;
@@ -18,7 +18,7 @@ use Modules\SalaryTransaction\Traits\SalaryTransferTrait;
 
 class Agency extends Model
 {
-    use AgencyAdditionalInfoTraits, DefaultBdAssignmentTrait, PaymentGetWayTrait, SalaryTransferTrait, SoftDeletes, TimestampsWithTimezone, CreatedByTrait;
+    use AgencyAdditionalInfoTraits, DefaultBdAssignmentTrait, PaymentGetWayTrait, SalaryTransferTrait, TimestampsWithTimezone, CreatedByTrait;
 
     protected $guarded = [];
 
@@ -426,6 +426,7 @@ class Agency extends Model
 
         self::saving(function ($model) {
             $model->type = 1;
+            $model->Host_agency = 1;
 
             if (request()->has('phone_code')) {
                 $model->phone_code = request('phone_code');

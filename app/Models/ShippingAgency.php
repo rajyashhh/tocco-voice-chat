@@ -9,7 +9,7 @@ use App\Traits\TimestampsWithTimezone;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Modules\AgencyApp\Traits\AgencyAdditionalInfoTraits;
 use Modules\SalaryTransaction\Entities\ChargeAgency;
 use Modules\SalaryTransaction\Entities\SalaryRequest;
@@ -17,7 +17,7 @@ use Modules\SalaryTransaction\Traits\SalaryTransferTrait;
 
 class ShippingAgency extends Model
 {
-    use AgencyAdditionalInfoTraits, PaymentGetWayTrait, SalaryTransferTrait, SoftDeletes, TimestampsWithTimezone ,CreatedByTrait;
+    use AgencyAdditionalInfoTraits, PaymentGetWayTrait, SalaryTransferTrait, TimestampsWithTimezone ,CreatedByTrait;
 
     protected $table = 'agencies';
 
@@ -325,6 +325,13 @@ class ShippingAgency extends Model
         self::addGlobalScope(new ShippingAgencyScope);
 
         self::saving(function ($model) {
+            $model->type = 2;
+            $model->Shipping_agency = 1;
+
+            if (empty($model->country_id) && $model->app_owner_id) {
+                $owner = User::select('id', 'country_id')->find($model->app_owner_id);
+                $model->country_id = $owner?->country_id ?: 0;
+            }
 
             if (request()->has('charge_agency')) {
                 if (request('charge_agency') == 1) {

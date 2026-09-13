@@ -131,7 +131,7 @@ Route::prefix(config('app.api_prefix'))->group(function () {
     // v2 — user/agency/charge enumeration surfaces. Previously exposed
     // unauthenticated (registered before the auth:sanctum group below); gated
     // behind sanctum so only authenticated callers can enumerate this data.
-    Route::prefix('search')->name('search.')->middleware(['auth:sanctum', 'checkLatestToken'])->group(function () {
+    Route::prefix('search')->name('search.')->middleware(['web', 'auth:sanctum,admin', 'checkLatestToken'])->group(function () {
         Route::get('users', [UserController::class, 'search'])->name('users');
         Route::get('users2', [UserController::class, 'search2'])->name('users2');
         Route::get('owner-rooms', [UserController::class, 'searchOwnerRoomWithPage'])->name('owner-rooms');

@@ -96,8 +96,13 @@ class ChargeController extends MainController
 
             $filter->where(function ($query) {
                 if ($this->input) {
+                    $agencyIds = ShippingAgency::where('id', $this->input)
+                        ->orWhere('app_owner_id', $this->input)
+                        ->pluck('id')
+                        ->toArray();
+
                     $query->where('user_type', 'agency')
-                        ->where('user_id', $this->input);
+                        ->whereIn('user_id', !empty($agencyIds) ? $agencyIds : [0]);
                 }
             }, __('Agency'))->select(ShippingAgency::pluck('name', 'id')->toArray());
 

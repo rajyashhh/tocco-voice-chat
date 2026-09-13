@@ -69,57 +69,23 @@
     LA.token = "{{ csrf_token() }}";
     LA.user = @json($_user_);
 
-    document.addEventListener("DOMContentLoaded", function () {
-    const sidebar = document.getElementById("main-sidebar");
-    const toggleBtn = document.querySelector(".sidebar-toggle");
-
-    toggleBtn.addEventListener("click", function (event) {
-        event.preventDefault();
-        sidebar.classList.toggle("active");
+    // Synchronize AdminLTE desktop sidebar-collapse state with localStorage
+    $(document).on('collapsed.pushMenu', function () {
+        try { localStorage.setItem('sidebarCollapsed', 'true'); } catch (e) {}
     });
 
-    document.addEventListener("click", function (event) {
-        if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
-            sidebar.classList.remove("active");
-        }
+    $(document).on('expanded.pushMenu', function () {
+        try { localStorage.setItem('sidebarCollapsed', 'false'); } catch (e) {}
     });
-});
 
-document.addEventListener("DOMContentLoaded", function () {
-    const sidebar = document.getElementById("main-sidebar");
-    const contentWrapper = document.getElementById("pjax-container");
-    // const selectCountries = document.querySelectorAll(".select-country");
-    // const mainHeader = document.querySelector(".select-country");
-    const selectWrapper = document.querySelector(".select-country-wrapper");
-    const toggleButton = document.querySelector(".sidebar-toggle");
-
-    function updateLayout() {
-        if (sidebar.classList.contains("active")) {
-            document.body.classList.remove("sidebar-collapsed");
+    // Preserve sidebar-collapse state across PJAX container updates
+    $(document).on('pjax:complete', function () {
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            document.body.classList.add('sidebar-collapse');
         } else {
-
-            document.body.classList.add("sidebar-collapsed");
+            document.body.classList.remove('sidebar-collapse');
         }
-    }
-
-    // استدعاء عند النقر على زر التبديل
-    toggleButton.addEventListener("click", function () {
-
-        sidebar.classList.toggle("active");
-        sidebar.classList.toggle("active_hide");
-        contentWrapper.classList.toggle("content-wrapper-rtl");
-        selectWrapper.classList.toggle("select-country-rtl");
-        // mainHeader.classList.toggle("select-country-rtl");
-        // selectCountries.forEach(function(selectElement) {
-        //     selectElement.classList.toggle("select-country-rtl");
-        // });
-        updateLayout();
     });
-
-    // تحديث عند تحميل الصفحة
-    updateLayout();
-});
-
 </script>
 
 <!-- REQUIRED JS SCRIPTS -->

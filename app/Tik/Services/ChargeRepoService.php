@@ -551,11 +551,16 @@ class ChargeRepoService
      */
     private function processAgencyCharge($authAgency, $chargeAgency, $amount)
     {
+        $agencyCountry = (int) ($authAgency->country_id ?? $authAgency->owner?->country_id ?? 0);
+        $targetCountry = (int) ($chargeAgency->country_id ?? $chargeAgency->owner?->country_id ?? 0);
+
+        if ($agencyCountry === 0 || $targetCountry === 0 || $agencyCountry !== $targetCountry) {
+            throw new Exception(__('api_responses.country_mismatch'));
+        }
+
         if ($authAgency->coins < $amount) {
             throw new Exception(__('balance not enough'));
         }
-
-
 
         $authAgency->decrement('coins', $amount);
         $chargeAgency->increment('coins', $amount);
@@ -577,6 +582,13 @@ class ChargeRepoService
      */
     private function processUserCharge($authAgency, $receiver, $amount)
     {
+        $agencyCountry = (int) ($authAgency->country_id ?? $authAgency->owner?->country_id ?? 0);
+        $receiverCountry = (int) ($receiver->country_id ?? 0);
+
+        if ($agencyCountry === 0 || $receiverCountry === 0 || $agencyCountry !== $receiverCountry) {
+            throw new Exception(__('api_responses.country_mismatch'));
+        }
+
         if ($authAgency->coins < $amount) {
             throw new Exception(__('balance not enough'));
         }

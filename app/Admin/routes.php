@@ -634,7 +634,8 @@ Route::group(
         Route::get('/agency-setting-manger', [MangerSettingController::class, 'index']);
         Route::resource('core-wallets', CoreWalletsController::class);
         Route::resource('core-wallet-transactions', CoreWalletTransactionController::class);
-        Route::post('/admin/wallet-transfer/submit', [CoreWalletsController::class, 'submitTransfer'])->name('wallet.transfer.submit');
+        Route::post('charge-agencies/fund', [AppearChargerAgencyController::class, 'fundCoins'])->name('charge-agencies.fund');
+        Route::post('charge-agencies/remove', [AppearChargerAgencyController::class, 'removeCoins'])->name('charge-agencies.remove');
         Route::resource('charge-agencies', AppearChargerAgencyController::class);
         // 2026-08-10 owner: the standalone "Joined Users" page (join/leave audit
         // log) was merged into the Hosts page as a "Join History" tab

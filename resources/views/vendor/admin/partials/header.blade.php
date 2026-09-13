@@ -474,7 +474,7 @@
 
             <div class="mobile-select-toggle d-lg-none">
                 <a href="javascript:void(0);"
-                   id="mobileSelectBtn" class="sidebar-toggle mobile-select-toggle-btn" role="button">
+                   id="mobileSelectBtn" class="mobile-select-toggle-btn" role="button">
                     <i class="fa fa-sliders"></i>
                 </a>
 

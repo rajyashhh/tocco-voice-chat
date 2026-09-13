@@ -13,6 +13,6 @@ class HostAgencyScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        $builder->where('agencies.type', '=', 1);
+        $builder->where('agencies.Host_agency', '=', 1);
     }
 }

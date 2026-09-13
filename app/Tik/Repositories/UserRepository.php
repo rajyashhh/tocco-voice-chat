@@ -55,9 +55,14 @@ class UserRepository extends AbstractRepository
                 'UserVip',
                 'packs',
             ])
-            ->where(function ($query) use ($prefix) {
+            ->where(function ($query) use ($prefix, $userUuId) {
                 $query->where('uuid', 'like', $prefix)
-                    ->orWhere('special_id', 'like', $prefix);
+                    ->orWhere('name', 'like', $prefix)
+                    ->orWhereHas('specialId', fn($q) => $q->where('packs.target_id', 'like', $prefix));
+
+                if (is_numeric($userUuId)) {
+                    $query->orWhere('id', (int) $userUuId);
+                }
             })
             ->orderBy('uuid')
             ->limit(30)

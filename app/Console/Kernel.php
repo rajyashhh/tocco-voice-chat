@@ -239,21 +239,13 @@ class Kernel extends ConsoleKernel
             ->runInBackground();
 
         // Refresh the denormalized "most active agency this month" signal that the
-        // agency listing orders by. Hourly keeps it fresh cheaply; the month-start
-        // run rolls it over to the new month (last month's leaders reset to 0).
+        // agency listing orders by. Hourly keeps it fresh cheaply and naturally handles
+        // month-start rollover when midnight strikes.
         $schedule->command('agency:update-monthly-activity')
             ->hourly()
             ->timezone(getTimezone())
             ->withoutOverlapping()
-            ->appendOutputTo(storage_path('logs/agency-monthly-activity.log'))
-            ->runInBackground();
-
-        $schedule->command('agency:update-monthly-activity')
-            ->monthlyOn(1, '00:01')
-            ->timezone(getTimezone())
-            ->withoutOverlapping()
-            ->appendOutputTo(storage_path('logs/agency-monthly-activity-rollover.log'))
-            ->runInBackground();
+            ->appendOutputTo(storage_path('logs/agency-monthly-activity.log'));
 
         $schedule->command('rooms:sync-occupancy')
             ->everyThirtySeconds()

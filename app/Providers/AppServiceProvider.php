@@ -232,21 +232,24 @@ class AppServiceProvider extends ServiceProvider
 
     protected function setupAppSettings(): void
     {
+        try {
+            $locale = app()->getLocale();
+            $key = $locale === 'ar' ? 'app_title_ar' : 'app_title_en';
 
-        $locale = app()->getLocale();
-        $key = $locale === 'ar' ? 'app_title_ar' : 'app_title_en';
+            $appName = Cache::rememberForever("settings.{$key}", function () use ($key) {
+                return Setting::where('key', $key)->value('value') ?? 'Default';
+            });
 
-        $appName = Cache::rememberForever("settings.{$key}", function () use ($key) {
-            return Setting::where('key', $key)->value('value') ?? 'Default';
-        });
+            config(['app.name' => $appName]);
 
-        config(['app.name' => $appName]);
+            $settings = CacheHelper::cacheSettings();
 
-        $settings = CacheHelper::cacheSettings();
-
-        /** @var Collection $rememberForever*/
-        if (gettype($settings) !== 'array') {
-            $settings = $settings->pluck('value', 'key')->toArray();
+            /** @var Collection $rememberForever*/
+            if (gettype($settings) !== 'array') {
+                $settings = $settings->pluck('value', 'key')->toArray();
+            }
+        } catch (\Throwable $e) {
+            $settings = [];
         }
 
         Config::set([
@@ -706,11 +709,15 @@ class AppServiceProvider extends ServiceProvider
 
     protected function setupLanguages(): void
     {
-        $enabledLanguages = Cache::rememberForever('languages', function () {
-            return Language::where('is_enabled', true)
-                ->pluck('name', 'code')
-                ->toArray();
-        });
+        try {
+            $enabledLanguages = Cache::rememberForever('languages', function () {
+                return Language::where('is_enabled', true)
+                    ->pluck('name', 'code')
+                    ->toArray();
+            });
+        } catch (\Throwable $e) {
+            $enabledLanguages = ['en' => 'English', 'ar' => 'Arabic'];
+        }
 
         Config::set('admin.extensions.multi-language.languages', $enabledLanguages);
         Config::set('admin.logo', Cache::get('app_title', 'Default Title'));

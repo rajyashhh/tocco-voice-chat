@@ -24,6 +24,7 @@ use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
+use App\Services\MainAdminWalletService;
 
 class AppearChargerAgencyController extends MainController
 {
@@ -32,7 +33,35 @@ class AppearChargerAgencyController extends MainController
     {
         Permission::check('create-' . $this->permission_name);
 
-        return parent::store();
+        try {
+            return parent::store();
+        } catch (\Illuminate\Database\QueryException $e) {
+            return $this->handleDuplicateOwner($e);
+        }
+    }
+
+    public function update($id)
+    {
+        Permission::check('edit-' . $this->permission_name);
+
+        try {
+            return parent::update($id);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return $this->handleDuplicateOwner($e);
+        }
+    }
+
+    protected function handleDuplicateOwner(\Illuminate\Database\QueryException $e)
+    {
+        if (($e->errorInfo[1] ?? null) === 1062 && str_contains($e->getMessage(), 'uq_agencies_app_owner_id')) {
+            $error = new \Illuminate\Support\MessageBag([
+                'app_owner_id' => [__('This user is already an owner of another agency.')],
+            ]);
+
+            return back()->withInput()->withErrors($error);
+        }
+
+        throw $e;
     }
     public $permission_name = 'appear-charger-agency';
 
@@ -73,6 +102,183 @@ class AppearChargerAgencyController extends MainController
             settings()->set("transfer_salary_reliable_shipping_agency", "1");
         } else {
             settings()->set("transfer_salary_reliable_shipping_agency", "0");
+        }
+    }
+
+    /**
+     * Check if the authenticated user is strictly a Main Admin.
+     */
+    protected function isMainAdmin($user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        // Sub-portal / scoped admin types are strictly prohibited from Main Admin direct funding
+        $restrictedTypes = [
+            'country',
+            'sub_country',
+            'shipping_super_admin',
+            'shipping_agency',
+            'agency',
+            'bd',
+            'region',
+            'sub_region',
+            'host_agency',
+        ];
+        if (in_array($user->type, $restrictedTypes, true)) {
+            return false;
+        }
+
+        // Main Admin must be an administrator/developer/superadmin or hold wildcard '*'
+        if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+            return true;
+        }
+
+        if (method_exists($user, 'isAdministrator') && $user->isAdministrator()) {
+            return true;
+        }
+
+        return $user->can('*');
+    }
+
+    /**
+     * Dedicated Main Admin endpoint to fund coins directly to a Charge Agency.
+     */
+    public function fundCoins(Request $request)
+    {
+        $user = Admin::user();
+        if (!$user || !$this->isMainAdmin($user)) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['status' => false, 'message' => __('you dont have permission')], 403);
+            }
+            abort(403, __('you dont have permission'));
+        }
+
+        try {
+            $data = $request->validate([
+                'agency_id'      => 'required|integer',
+                'amount'         => 'required|integer|min:1',
+                'operation_uuid' => 'required|string|max:64',
+                'reason'         => 'nullable|string|max:255',
+            ]);
+
+            $agency = ShippingAgency::withoutGlobalScopes()->where('id', $data['agency_id'])->first();
+            if (!$agency) {
+                throw new \RuntimeException(__('api_responses.agency'));
+            }
+
+            if ($agency->is_frozen == 1) {
+                throw new \RuntimeException(__('it_agency_freez_charge'));
+            }
+
+            if ($agency->status != 1) {
+                throw new \RuntimeException(__('This agency is not active'));
+            }
+
+            $applied = app(MainAdminWalletService::class)->fundChargeAgency(
+                $user,
+                $agency,
+                (int) $data['amount'],
+                $data['operation_uuid'],
+                $data['reason'] ?? null
+            );
+
+            $message = $applied ? __('Charged successfully') : __('Already processed');
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'status'  => true,
+                    'message' => $message,
+                    'coins'   => (int) $agency->fresh()->coins,
+                ]);
+            }
+
+            admin_toastr($message, 'success');
+            return back();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errorMsg = collect($e->errors())->flatten()->first() ?? __('Validation error');
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['status' => false, 'message' => $errorMsg], 422);
+            }
+            admin_toastr($errorMsg, 'error');
+            return back()->withInput();
+        } catch (\Throwable $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['status' => false, 'message' => $e->getMessage()], 422);
+            }
+            admin_toastr($e->getMessage(), 'error');
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Dedicated Main Admin endpoint to remove coins directly from a Charge Agency.
+     */
+    public function removeCoins(Request $request)
+    {
+        $user = Admin::user();
+        if (!$user || !$this->isMainAdmin($user)) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['status' => false, 'message' => __('you dont have permission')], 403);
+            }
+            abort(403, __('you dont have permission'));
+        }
+
+        try {
+            $data = $request->validate([
+                'agency_id'      => 'required|integer',
+                'amount'         => 'required|integer|min:1',
+                'operation_uuid' => 'required|string|max:64',
+                'reason'         => 'nullable|string|max:255',
+            ]);
+
+            $agency = ShippingAgency::withoutGlobalScopes()->where('id', $data['agency_id'])->first();
+            if (!$agency) {
+                throw new \RuntimeException(__('api_responses.agency'));
+            }
+
+            if ($agency->is_frozen == 1) {
+                throw new \RuntimeException(__('it_agency_freez_charge'));
+            }
+
+            if ($agency->status != 1) {
+                throw new \RuntimeException(__('This agency is not active'));
+            }
+
+            $applied = app(MainAdminWalletService::class)->removeCoinsFromChargeAgency(
+                $user,
+                $agency,
+                (int) $data['amount'],
+                $data['operation_uuid'],
+                $data['reason'] ?? null
+            );
+
+            $message = $applied ? __('Coins removed successfully') : __('Already processed');
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'status'  => true,
+                    'message' => $message,
+                    'coins'   => (int) $agency->fresh()->coins,
+                ]);
+            }
+
+            admin_toastr($message, 'success');
+            return back();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errorMsg = collect($e->errors())->flatten()->first() ?? __('Validation error');
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['status' => false, 'message' => $errorMsg], 422);
+            }
+            admin_toastr($errorMsg, 'error');
+            return back()->withInput();
+        } catch (\Throwable $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['status' => false, 'message' => $e->getMessage()], 422);
+            }
+            admin_toastr($e->getMessage(), 'error');
+            return back()->withInput();
         }
     }
 
@@ -313,15 +519,28 @@ class AppearChargerAgencyController extends MainController
                 return $this->is_frozen ? 1 : 0;
             })
             ->switch(Common::getSwitchStates())->sortable();
+
+        $grid->column('coins', __('Available Coins'))
+            ->display(function ($coins) {
+                return number_format((int) ($coins ?? 0));
+            })->sortable();
+
         $permission = $this->permission_name;
+        $isMainAdmin = $this->isMainAdmin(Admin::user());
         $grid->column('created_by', __('Creator'))->display(function ($creatorId) {
             if ($this->creator) {
                 return app(\App\Admin\Services\CreatorService::class)->show($this->creator);
             }
             return app(\App\Admin\Services\CreatorService::class)->show($creatorId);
         });
-        $grid->actions(function ($actions) use ($permission) {
+        $grid->actions(function ($actions) use ($permission, $isMainAdmin) {
             $actions->disableView();
+
+            if ($isMainAdmin) {
+                $actions->add(new \App\Admin\Actions\FundAgencyCoinsAction());
+                $actions->add(new \App\Admin\Actions\RemoveAgencyCoinsAction());
+            }
+
             if (Admin::user()->can('delete-switch-' . $permission) || Admin::user()->can('*')) {
 
                 $actions->add(new DeleteShippingAgencyAction());
@@ -335,6 +554,10 @@ class AppearChargerAgencyController extends MainController
             $exportUrl = route('charge-agency-export-report') . '?' . http_build_query($query);
 
             $tools->append('<a href="' . $exportUrl . '" target="_blank" class="btn btn-sm btn-success"><i class="fa fa-download"></i> ' . __('admin.exportExcel') . '</a>');
+        });
+
+        $grid->footer(function () {
+            return view('admin.grid.shipping_agency.fund_modal')->render();
         });
 
         return $grid;
@@ -466,20 +689,30 @@ class AppearChargerAgencyController extends MainController
             $form->phone_code = request('phone_code');
             $appOwnerId = $form->input('app_owner_id');
             $originalOwnerId = $form->model()->getOriginal('app_owner_id');
-            $newOwnerId = $form->model()->app_owner_id;
+            $currentAgencyId = $form->model()->id ?? null;
 
-            if (!$form->model()->exists) {
-                //  Common::createUserAdmin($appOwnerId);
+            if ($appOwnerId) {
+                $existingAgency = \DB::table('agencies')
+                    ->where('app_owner_id', $appOwnerId)
+                    ->when($currentAgencyId, function ($query) use ($currentAgencyId) {
+                        $query->where('id', '!=', $currentAgencyId);
+                    })
+                    ->first();
+
+                if ($existingAgency) {
+                    $error = new \Illuminate\Support\MessageBag([
+                        'app_owner_id' => [__('This user is already an owner of another agency.')],
+                    ]);
+                    return back()->withInput()->withErrors($error);
+                }
             }
 
-            if ($form->model()->exists && $newOwnerId != $originalOwnerId) {
-                //  Common::createUserAdmin($appOwnerId);
-
+            if ($form->model()->exists && $appOwnerId != $originalOwnerId && $originalOwnerId) {
                 $user = User::find($originalOwnerId);
-                $agencyId = $form->model()->id;
 
-
-                Admin::where('username', $user->uuid)->delete();
+                if ($user) {
+                    Admin::where('username', $user->uuid)->delete();
+                }
             }
         });
 

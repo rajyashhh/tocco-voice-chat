@@ -12,7 +12,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use App\Helpers\Common;
-use Encore\Admin\Admin;
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission;
 use Illuminate\Support\MessageBag;
@@ -470,8 +470,8 @@ class TargetController extends MainController
                         <label><input type="checkbox" name="columns[]" value="moments" checked> ' . __('Moments') . '</label><br>
                         </div>
                         <div class="modal-footer">
-                        <button type="submit" formaction="/admin/download-target-pdf" class="btn btn-primary">' . __('Export PDF') . '</button>
-                        <button type="submit" formaction="/admin/download-target-excel" class="btn btn-success">' . __('Export Excel') . '</button>
+                        <button type="submit" formaction="' . admin_url('download-target-pdf') . '" class="btn btn-primary">' . __('Export PDF') . '</button>
+                        <button type="submit" formaction="' . admin_url('download-target-excel') . '" class="btn btn-success">' . __('Export Excel') . '</button>
                     </div>
                     </div>
                     </form>
@@ -888,7 +888,10 @@ class TargetController extends MainController
                 'selectedColumns' => $selectedColumns,
             ]);
 
-            return $pdf->download('target_data_' . now()->format('Y_m_d') . '.pdf');
+            return response($pdf->output(), 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="target_data_' . now()->format('Y_m_d') . '.pdf"',
+            ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
         }

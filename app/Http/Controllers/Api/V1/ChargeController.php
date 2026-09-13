@@ -488,7 +488,17 @@ class ChargeController extends Controller
     {
         $from = $request->user();
         if (!$request->id || !$request->amount) return Common::apiResponse(false, 'missing_params');
-        if ($request->amount < 0) return Common::apiResponse(false, 'value not allow');
+        if ($request->amount <= 0) return Common::apiResponse(false, 'value not allow');
+
+        $operationUuid = $request->input('operation_uuid');
+        if ($operationUuid !== null) {
+            if (!is_string($operationUuid) || strlen($operationUuid) < 10 || strlen($operationUuid) > 64) {
+                return Common::apiResponse(0, 'Invalid operation_uuid', 422);
+            }
+            if (\Illuminate\Support\Facades\Cache::has("agency_charge_op_{$operationUuid}")) {
+                return Common::apiResponse(1, 'your recharge was successful', 200);
+            }
+        }
 
         $toUser = null;
         $to = null;
@@ -519,13 +529,35 @@ class ChargeController extends Controller
             }
         }
 
+        $lock = null;
+        if ($operationUuid) {
+            $lock = \Illuminate\Support\Facades\Cache::lock("agency_charge_lock_{$operationUuid}", 10);
+            if (!$lock->get()) {
+                try {
+                    $lock->block(3);
+                } catch (\Throwable $e) {
+                    return Common::apiResponse(0, 'Concurrent request in progress', 409);
+                }
+                if (\Illuminate\Support\Facades\Cache::has("agency_charge_op_{$operationUuid}")) {
+                    return Common::apiResponse(1, 'your recharge was successful', 200);
+                }
+            }
+        }
 
         try {
             $this->chargeService->chargeAgencyToAnother($from, $request);
 
+            if ($operationUuid) {
+                \Illuminate\Support\Facades\Cache::put("agency_charge_op_{$operationUuid}", true, now()->addDays(7));
+            }
+
             return Common::apiResponse(1, 'your recharge was successful', 200);
         } catch (Exception $e) {
             return Common::apiResponse(0, $e->getMessage());
+        } finally {
+            if ($lock) {
+                optional($lock)->release();
+            }
         }
     }
 

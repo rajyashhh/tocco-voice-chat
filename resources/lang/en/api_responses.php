@@ -170,5 +170,6 @@ return [
     'lucky_gift_rate_limit' => "You can't send more than 150 gifts per minute. Please try again shortly.",
     'no_target' => 'No target available',
     'added_successfully' => 'Added successfully',
+    'country_mismatch' => 'Cannot transfer coins across different countries',
 
 ];
